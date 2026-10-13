@@ -16,7 +16,11 @@ enum AppIconName {
   history('history'),
   help('help'),
   logout('logout'),
-  filter('filter');
+  filter('filter'),
+  bookmark('bookmark'),
+  bookmarkFilled('bookmark_filled'),
+  comment('comment'),
+  more('more');
 
   const AppIconName(this.fileName);
 
