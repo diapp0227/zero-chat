@@ -36,4 +36,16 @@ abstract final class AppColors {
   static const filterIcon = Color(0xFF77776F);
   static const filterBorder = Color(0xFFE0DFD7);
   static const filterBackground = Color(0xFFFBFAF6);
+
+  static const postMeta = Color(0xFF96968D);
+  static const postRole = Color(0xFFA09F96);
+  static const postAction = Color(0xFF96968D);
+  static const postActionHover = Color(0xFFEFEFE3);
+  static const postSaved = Color(0xFF70822A);
+  static const postLink = Color(0xFF718029);
+  static const postImagePlaceholder = Color(0xFFE1DFD5);
+  static const replySummary = Color(0xFF87877F);
+  static const replyText = Color(0xFF4F5049);
+  static const repliesBorderTop = Color(0xFFEBEAE3);
+  static const repliesBorderLeft = Color(0xFFE7E9D8);
 }
