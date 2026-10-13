@@ -2,14 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// assets/icons/ の線画アイコン
+///
+/// 括弧内は SVG のファイル名 (拡張子なし)
 enum AppIconName {
-  home,
-  search,
-  bell,
-  organization,
-  mail;
+  home('home'),
+  search('search'),
+  bell('bell'),
+  organization('organization'),
+  mail('mail'),
+  plus('plus'),
+  chevronDown('chevron_down'),
+  settings('settings'),
+  history('history'),
+  help('help'),
+  logout('logout');
 
-  String get assetPath => 'assets/icons/$name.svg';
+  const AppIconName(this.fileName);
+
+  final String fileName;
+
+  String get assetPath => 'assets/icons/$fileName.svg';
 }
 
 class AppIcon extends StatelessWidget {
