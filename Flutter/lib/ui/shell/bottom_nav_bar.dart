@@ -4,14 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/app_colors.dart';
 import '../core/app_icon.dart';
-
-class BottomNavItem {
-  const BottomNavItem({required this.label, required this.icon, this.badge});
-
-  final String label;
-  final AppIconName icon;
-  final String? badge;
-}
+import 'tab_nav_item.dart';
 
 /// 画面下部に固定するフッタータブ
 ///
@@ -24,7 +17,7 @@ class BottomNavBar extends StatelessWidget {
     required this.onSelected,
   });
 
-  final List<BottomNavItem> items;
+  final List<TabNavItem> items;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
@@ -67,7 +60,7 @@ class _BottomNavButton extends StatelessWidget {
     required this.onTap,
   });
 
-  final BottomNavItem item;
+  final TabNavItem item;
   final bool selected;
   final VoidCallback onTap;
 
