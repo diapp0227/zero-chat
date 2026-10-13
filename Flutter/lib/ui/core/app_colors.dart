@@ -29,4 +29,11 @@ abstract final class AppColors {
   static const menuHoverText = Color(0xFF59681F);
   static const menuHoverBackground = Color(0xFFF1F2E8);
   static const menuDanger = Color(0xFFA14D42);
+
+  static const tabInactive = Color(0xFF999990);
+  static const tabIndicator = Color(0xFF70822A);
+
+  static const filterIcon = Color(0xFF77776F);
+  static const filterBorder = Color(0xFFE0DFD7);
+  static const filterBackground = Color(0xFFFBFAF6);
 }
