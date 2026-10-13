@@ -9,6 +9,9 @@
 # IDE
 .idea/
 
+# Private docs (AWS account IDs etc.)
+docs/private/
+
 
 
 # Flutter repo-specific
