@@ -15,7 +15,8 @@ enum AppIconName {
   settings('settings'),
   history('history'),
   help('help'),
-  logout('logout');
+  logout('logout'),
+  filter('filter');
 
   const AppIconName(this.fileName);
 
