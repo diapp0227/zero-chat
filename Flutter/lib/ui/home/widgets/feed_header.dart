@@ -8,7 +8,7 @@ import '../../core/profile_menu_button.dart';
 /// スマホ (compact / medium 幅) のタイムライン上部の水色ヘッダー
 ///
 /// 中央にロゴ、右上にプロフィールメニュー。
-/// 「おすすめ / フォロー中」のタブはこの下に置く (3-1 で実装)
+/// タイムラインのタブ (FeedTabs) はこの下に置く
 class FeedHeader extends StatelessWidget {
   const FeedHeader({super.key});
 
