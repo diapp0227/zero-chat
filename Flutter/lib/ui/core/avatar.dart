@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
+/// アバターの大きさの種類
 enum AvatarSize {
   sm(dimension: 28, radius: 9, fontSize: 11),
   md(dimension: 38, radius: 12, fontSize: 14),
@@ -13,8 +14,13 @@ enum AvatarSize {
     required this.fontSize,
   });
 
+  /// 縦横の大きさ
   final double dimension;
+
+  /// 角丸の大きさ
   final double radius;
+
+  /// 頭文字の大きさ
   final double fontSize;
 }
 
@@ -27,10 +33,13 @@ class Avatar extends StatelessWidget {
     this.size = AvatarSize.md,
   });
 
+  /// 名前 (最初の1文字を表示する)
   final String name;
 
   /// グラデーションの開始色と終了色 (CSS の linear-gradient(145deg, ...) 相当)
   final (Color, Color) colors;
+
+  /// アバターの大きさ
   final AvatarSize size;
 
   @override

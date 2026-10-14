@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'routing/router.dart';
 import 'ui/core/app_theme.dart';
 
+/// アプリ全体。テーマとルーティング (画面の切り替え) を設定する
 class App extends ConsumerWidget {
   const App({super.key});
 

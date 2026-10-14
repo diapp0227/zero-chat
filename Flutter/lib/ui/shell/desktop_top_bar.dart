@@ -18,9 +18,16 @@ class DesktopTopBar extends StatelessWidget {
     required this.onCompose,
   });
 
+  /// 並べるタブの一覧
   final List<TabNavItem> items;
+
+  /// 選ばれているタブの番号
   final int selectedIndex;
+
+  /// タブが押されたときの処理 (押されたタブの番号を受け取る)
   final ValueChanged<int> onSelected;
+
+  /// 「投稿する」ボタンが押されたときの処理
   final VoidCallback onCompose;
 
   @override
@@ -84,6 +91,7 @@ class DesktopTopBar extends StatelessWidget {
   }
 }
 
+/// 上部バーのタブのボタン1つ分。アイコンの右に名前
 class _TopNavButton extends StatelessWidget {
   const _TopNavButton({
     required this.item,
@@ -92,9 +100,16 @@ class _TopNavButton extends StatelessWidget {
     required this.onTap,
   });
 
+  /// このボタンのタブ
   final TabNavItem item;
+
+  /// 選ばれているか (色・背景・太さを切り替える)
   final bool selected;
+
+  /// ボタンの左右の余白
   final double horizontalPadding;
+
+  /// 押されたときの処理
   final VoidCallback onTap;
 
   @override
@@ -145,10 +160,14 @@ class _TopNavButton extends StatelessWidget {
   }
 }
 
+/// アイコンと、その右上に重ねる件数バッジ (真円)
 class _IconWithBadge extends StatelessWidget {
   const _IconWithBadge({required this.icon, this.badge});
 
+  /// 表示するアイコン
   final AppIconName icon;
+
+  /// 右上に出す件数 (なければ null)
   final String? badge;
 
   @override
@@ -186,9 +205,11 @@ class _IconWithBadge extends StatelessWidget {
   }
 }
 
+/// 紺色の「投稿する」ボタン
 class _ComposeButton extends StatelessWidget {
   const _ComposeButton({required this.onPressed});
 
+  /// 押されたときの処理
   final VoidCallback onPressed;
 
   @override

@@ -17,8 +17,13 @@ class BottomNavBar extends StatelessWidget {
     required this.onSelected,
   });
 
+  /// 並べるタブの一覧
   final List<TabNavItem> items;
+
+  /// 選ばれているタブの番号
   final int selectedIndex;
+
+  /// タブが押されたときの処理 (押されたタブの番号を受け取る)
   final ValueChanged<int> onSelected;
 
   @override
@@ -53,6 +58,7 @@ class BottomNavBar extends StatelessWidget {
   }
 }
 
+/// フッタータブのボタン1つ分。アイコンの下に名前
 class _BottomNavButton extends StatelessWidget {
   const _BottomNavButton({
     required this.item,
@@ -60,8 +66,13 @@ class _BottomNavButton extends StatelessWidget {
     required this.onTap,
   });
 
+  /// このボタンのタブ
   final TabNavItem item;
+
+  /// 選ばれているか (色と背景を切り替える)
   final bool selected;
+
+  /// 押されたときの処理
   final VoidCallback onTap;
 
   @override
@@ -115,11 +126,17 @@ class _BottomNavButton extends StatelessWidget {
   }
 }
 
+/// アイコンと、その右上に重ねる件数バッジ
 class _IconWithBadge extends StatelessWidget {
   const _IconWithBadge({required this.icon, required this.color, this.badge});
 
+  /// 表示するアイコン
   final AppIconName icon;
+
+  /// アイコンの色
   final Color color;
+
+  /// 右上に出す件数 (なければ null)
   final String? badge;
 
   @override

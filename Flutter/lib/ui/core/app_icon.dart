@@ -24,15 +24,20 @@ enum AppIconName {
 
   const AppIconName(this.fileName);
 
+  /// SVG のファイル名 (拡張子なし)
   final String fileName;
 
   String get assetPath => 'assets/icons/$fileName.svg';
 }
 
+/// assets/icons/ の SVG を、指定した大きさと色で表示する
 class AppIcon extends StatelessWidget {
   const AppIcon(this.name, {super.key, this.size = 21, this.color});
 
+  /// 表示するアイコン
   final AppIconName name;
+
+  /// 縦横の大きさ
   final double size;
 
   /// 未指定なら IconTheme の色を使う

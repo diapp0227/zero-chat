@@ -4,6 +4,7 @@ import 'app_colors.dart';
 import 'app_icon.dart';
 import 'avatar.dart';
 
+/// プロフィールメニューの項目
 enum ProfileMenuAction {
   // settings('プロフィール設定', AppIconName.settings),
   // history('利用履歴', AppIconName.history),
@@ -12,7 +13,10 @@ enum ProfileMenuAction {
 
   const ProfileMenuAction(this.label, this.icon);
 
+  /// メニューに表示する名前
   final String label;
+
+  /// 名前の左に出すアイコン
   final AppIconName icon;
 }
 
@@ -33,6 +37,7 @@ class ProfileMenuButton extends StatelessWidget {
   /// ボタンの下端からメニューまでの間隔
   final double menuGap;
 
+  /// 項目が押されたときの処理 (なければ押してもメニューが閉じるだけ)
   final ValueChanged<ProfileMenuAction>? onSelected;
 
   static const _menuWidth = 180.0;
@@ -105,10 +110,14 @@ class ProfileMenuButton extends StatelessWidget {
   }
 }
 
+/// プロフィールメニューの1項目
 class _ProfileMenuItem extends StatelessWidget {
   const _ProfileMenuItem({required this.action, required this.onPressed});
 
+  /// この項目の内容
   final ProfileMenuAction action;
+
+  /// 押されたときの処理
   final VoidCallback onPressed;
 
   @override

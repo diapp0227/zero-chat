@@ -12,7 +12,10 @@ class AppLogo extends StatelessWidget {
     this.showText = true,
   });
 
+  /// マークの大きさ
   final double markSize;
+
+  /// 「Zero」の文字の大きさ
   final double fontSize;
 
   /// false ならマークだけ表示する
@@ -46,9 +49,11 @@ class AppLogo extends StatelessWidget {
   }
 }
 
+/// ロゴのマーク。黒い角丸 (左下だけ小さい) の中に黄緑の ∅
 class _LogoMark extends StatelessWidget {
   const _LogoMark({required this.size});
 
+  /// マークの大きさ (角丸と中の線画も、この大きさに合わせて変わる)
   final double size;
 
   @override

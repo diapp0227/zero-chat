@@ -23,6 +23,7 @@ const tabNavItems = [
 class TabShell extends StatelessWidget {
   const TabShell({super.key, required this.navigationShell});
 
+  /// 選ばれているタブの画面と、タブを切り替える操作 (go_router から渡される)
   final StatefulNavigationShell navigationShell;
 
   void _onSelected(int index) {
