@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- サーバー (投稿取得 API) と通信するため -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="zero_chat"
         android:name="${applicationName}"
