@@ -24,6 +24,12 @@ enum AvatarSize {
   final double fontSize;
 }
 
+/// 人の番号 [userId] から、アバターのグラデーションの色を選ぶ
+///
+/// 同じ人は、いつも同じ色になる
+(Color, Color) avatarColorsFor(int userId) =>
+    AppColors.avatarGradients[(userId - 1) % AppColors.avatarGradients.length];
+
 /// 名前の頭文字をグラデーション背景の角丸四角に表示するアイコン
 class Avatar extends StatelessWidget {
   const Avatar({

@@ -1,21 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// タイムラインの種類
+import '../../domain/models/post_category.dart';
+
+/// タイムラインの種類 (タブで切り替える)
+///
+/// 「最新」はすべての投稿、それ以外は投稿の種類 [PostCategory] で絞り込む
 enum TimelineCategory {
-  latest('最新'),
-  announcement('お知らせ'),
-  dailyReport('日報'),
-  selfStudy('自己学習');
+  latest(null),
+  announcement(PostCategory.announcement),
+  dailyReport(PostCategory.dailyReport),
+  selfStudy(PostCategory.selfStudy);
 
-  const TimelineCategory(this.label);
+  const TimelineCategory(this.postCategory);
 
-  /// タブに表示する名前 (例: 日報)
-  final String label;
+  /// 表示する投稿の種類 (null ならすべての投稿)
+  final PostCategory? postCategory;
+
+  /// タブに表示する名前 (例: 最新、日報)
+  String get label => postCategory?.label ?? '最新';
 }
 
 /// 選択中のタイムラインのカテゴリ
 ///
-/// 「投稿の情報注入」でカテゴリに応じた投稿を読み込むときに参照する
+/// HomeViewModel が、選択中のカテゴリの投稿を読み込むときに参照する
 final selectedTimelineCategoryProvider =
     NotifierProvider<SelectedTimelineCategory, TimelineCategory>(
       SelectedTimelineCategory.new,

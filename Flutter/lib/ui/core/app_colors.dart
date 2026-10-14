@@ -50,6 +50,17 @@ abstract final class AppColors {
   /// アバターの白い縁の外側の細い線
   static const avatarRing = Color(0xFFD9D8CF);
 
+  /// アバターのグラデーション (開始色と終了色) の候補。人の番号で選ぶ
+  static const avatarGradients = [
+    (Color(0xFFF4A98C), Color(0xFFD56C65)),
+    (Color(0xFF92A9D8), Color(0xFF536B9E)),
+    (Color(0xFFE8BD79), Color(0xFFB87947)),
+    (Color(0xFF8FBEA0), Color(0xFF527A61)),
+    (Color(0xFF80C9B2), Color(0xFF458B78)),
+    (Color(0xFFBF9AD8), Color(0xFF795B9A)),
+    (Color(0xFF7BB5CF), Color(0xFF47758D)),
+  ];
+
   /// プロフィールメニュー：項目の文字とアイコン、スマホのヘッダーの ▼
   static const menuText = Color(0xFF4F5049);
 
