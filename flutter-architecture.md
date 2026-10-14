@@ -22,7 +22,7 @@ flowchart TD
             View -->|"ref.watch / ref.read"| VM
         end
 
-        subgraph Domain["Domain layer（任意）"]
+        subgraph Domain["Domain layer"]
             UseCase["UseCase<br/>複雑なロジックを集約"]
             Model["Model<br/>不変のデータクラス"]
         end
@@ -58,8 +58,6 @@ flowchart TD
 | Domain | Model | 普通のDartクラス（freezedなど） | 不変のデータクラス。Riverpodには依存させない |
 | Data | Repository | `Provider` で公開 | リモートとローカルを束ねてキャッシュ・リトライ・変換を担当。生のAPIレスポンスをModelに変換して返す |
 | Data | Service | `Provider` で公開 | 外部との通信を薄くラップするだけ。状態は持たない |
-
-個人開発ならDomain layerは最初は省略で十分。
 
 ## 3. 押さえるルール
 
