@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# API の URL (config/api.example.json をコピーして作る)
+/config/api.json
