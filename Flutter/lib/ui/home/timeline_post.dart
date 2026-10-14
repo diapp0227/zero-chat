@@ -17,8 +17,8 @@ class TimelinePost {
     this.replies = const [],
   });
 
-  /// 投稿を見分けるための ID (画面には出さない)
-  final String id;
+  /// 投稿を見分けるための一意な番号 (画面には出さない)
+  final int id;
 
   /// 投稿者の名前 (アバターの頭文字にも使う)
   final String authorName;
@@ -70,8 +70,8 @@ class TimelineReply {
     required this.text,
   });
 
-  /// 返信を見分けるための ID (画面には出さない)
-  final String id;
+  /// 返信を見分けるための一意な番号 (画面には出さない)
+  final int id;
 
   /// 返信者の名前 (アバターの頭文字にも使う)
   final String authorName;
