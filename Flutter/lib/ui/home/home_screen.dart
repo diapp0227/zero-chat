@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/app_colors.dart';
 import '../core/breakpoints.dart';
 import 'sample_timeline_posts.dart';
-import 'widgets/feed_header.dart';
-import 'widgets/feed_tabs.dart';
+import 'widgets/timeline_header.dart';
+import 'widgets/timeline_category_tabs.dart';
 import 'widgets/post_cell.dart';
 
 /// ホーム画面 (タイムライン)
 ///
-/// PC (expanded 幅) では上部バーがヘッダーを兼ねるので FeedHeader は出さない
+/// PC (expanded 幅) では上部バーがヘッダーを兼ねるので TimelineHeader は出さない
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -22,7 +22,7 @@ class HomeScreen extends ConsumerWidget {
     final posts = sampleTimelinePosts;
 
     // スマホ・タブレットで列より画面が広いときは、列の左右に線を引く
-    final showSideBorders = !isExpanded && width > _FeedColumn.maxWidth;
+    final showSideBorders = !isExpanded && width > _TimelineColumn.maxWidth;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -30,8 +30,10 @@ class HomeScreen extends ConsumerWidget {
         children: [
           Column(
             children: [
-              if (!isExpanded) const _FeedColumn(child: FeedHeader()),
-              _FeedColumn(child: FeedTabs(centered: !isExpanded)),
+              if (!isExpanded) const _TimelineColumn(child: TimelineHeader()),
+              _TimelineColumn(
+                child: TimelineCategoryTabs(centered: !isExpanded),
+              ),
               Expanded(
                 // 一覧は画面の全幅に広げ、列の外側 (左右の余白) でもスクロールできるようにする
                 child: ListView.builder(
@@ -40,7 +42,7 @@ class HomeScreen extends ConsumerWidget {
                     bottom: MediaQuery.paddingOf(context).bottom,
                   ),
                   itemCount: posts.length,
-                  itemBuilder: (context, index) => _FeedColumn(
+                  itemBuilder: (context, index) => _TimelineColumn(
                     child: PostCell(
                       key: ValueKey(posts[index].id),
                       post: posts[index],
@@ -54,7 +56,7 @@ class HomeScreen extends ConsumerWidget {
             // 列の左右の線は、ヘッダーから一覧まで通して1本で引く
             const Positioned.fill(
               child: IgnorePointer(
-                child: _FeedColumn(
+                child: _TimelineColumn(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       border: Border.symmetric(
@@ -73,12 +75,13 @@ class HomeScreen extends ConsumerWidget {
 }
 
 /// 中身を最大 640px の列にして、画面の左右中央に置く
-class _FeedColumn extends StatelessWidget {
-  const _FeedColumn({required this.child});
+class _TimelineColumn extends StatelessWidget {
+  const _TimelineColumn({required this.child});
 
   /// タイムラインの列の最大幅
   static const maxWidth = 640.0;
 
+  /// 列に収める中身
   final Widget child;
 
   @override

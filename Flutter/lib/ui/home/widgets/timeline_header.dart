@@ -8,9 +8,9 @@ import '../../core/profile_menu_button.dart';
 /// スマホ (compact / medium 幅) のタイムライン上部の水色ヘッダー
 ///
 /// 中央にロゴ、右上にプロフィールメニュー。
-/// タイムラインのタブ (FeedTabs) はこの下に置く
-class FeedHeader extends StatelessWidget {
-  const FeedHeader({super.key});
+/// タイムラインのタブ (TimelineCategoryTabs) はこの下に置く
+class TimelineHeader extends StatelessWidget {
+  const TimelineHeader({super.key});
 
   @override
   Widget build(BuildContext context) {

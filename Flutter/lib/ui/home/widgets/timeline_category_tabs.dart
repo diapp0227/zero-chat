@@ -3,19 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/app_colors.dart';
 import '../../core/app_icon.dart';
-import '../feed_tab.dart';
+import '../timeline_category.dart';
 
 /// タイムラインのタブ (最新 / お知らせ / 日報 / 自己学習) とフィルターボタンが並ぶ白い帯
 ///
 /// スマホ (centered: true) はタブを中央に、PC はタブを左に寄せる。
 /// タブが入りきらない狭い画面では、タブだけ横にスクロールできる
-class FeedTabs extends ConsumerWidget {
-  const FeedTabs({
+class TimelineCategoryTabs extends ConsumerWidget {
+  const TimelineCategoryTabs({
     super.key,
     required this.centered,
     this.showFilterButton = false,
   });
 
+  /// true ならタブを中央に (スマホ)、false なら左に寄せる (PC)
   final bool centered;
 
   /// フィルターボタンを表示するか。フィルターの仕様が決まるまでは非表示
@@ -30,17 +31,19 @@ class FeedTabs extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selected = ref.watch(selectedFeedTabProvider);
+    final selected = ref.watch(selectedTimelineCategoryProvider);
 
     final tabs = Row(
       mainAxisSize: MainAxisSize.min,
       spacing: centered ? 24 : 25,
       children: [
-        for (final tab in FeedTab.values)
-          _FeedTabButton(
-            tab: tab,
-            selected: tab == selected,
-            onTap: () => ref.read(selectedFeedTabProvider.notifier).select(tab),
+        for (final category in TimelineCategory.values)
+          _TimelineCategoryTabButton(
+            category: category,
+            selected: category == selected,
+            onTap: () => ref
+                .read(selectedTimelineCategoryProvider.notifier)
+                .select(category),
           ),
       ],
     );
@@ -92,15 +95,21 @@ class FeedTabs extends ConsumerWidget {
   }
 }
 
-class _FeedTabButton extends StatelessWidget {
-  const _FeedTabButton({
-    required this.tab,
+/// タブ1つ分。文字と、選択中のときの緑の下線
+class _TimelineCategoryTabButton extends StatelessWidget {
+  const _TimelineCategoryTabButton({
+    required this.category,
     required this.selected,
     required this.onTap,
   });
 
-  final FeedTab tab;
+  /// このタブのカテゴリ
+  final TimelineCategory category;
+
+  /// 選択中か (文字の色・太さと下線を切り替える)
   final bool selected;
+
+  /// 押されたときの処理
   final VoidCallback onTap;
 
   @override
@@ -120,7 +129,7 @@ class _FeedTabButton extends StatelessWidget {
                 // 帯の下端から 1px はみ出した位置が基準なので、下の余白は 13 + 1
                 padding: const EdgeInsets.fromLTRB(5, 0, 5, 14),
                 child: Text(
-                  tab.label,
+                  category.label,
                   style: TextStyle(
                     color: selected ? AppColors.text : AppColors.tabInactive,
                     fontSize: 12,
@@ -152,6 +161,7 @@ class _FeedTabButton extends StatelessWidget {
   }
 }
 
+/// 投稿を絞り込むフィルターボタン (今は非表示)
 class _FilterButton extends StatelessWidget {
   const _FilterButton();
 

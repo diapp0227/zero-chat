@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zero_chat/app.dart';
-import 'package:zero_chat/ui/home/feed_tab.dart';
+import 'package:zero_chat/ui/home/timeline_category.dart';
 import 'package:zero_chat/ui/home/home_screen.dart';
 import 'package:zero_chat/ui/home/timeline_post.dart';
-import 'package:zero_chat/ui/home/widgets/feed_header.dart';
-import 'package:zero_chat/ui/home/widgets/feed_tabs.dart';
+import 'package:zero_chat/ui/home/widgets/timeline_header.dart';
+import 'package:zero_chat/ui/home/widgets/timeline_category_tabs.dart';
 import 'package:zero_chat/ui/home/widgets/post_cell.dart';
 import 'package:zero_chat/ui/shell/bottom_nav_bar.dart';
 import 'package:zero_chat/ui/shell/desktop_top_bar.dart';
@@ -23,7 +23,7 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
 
-    expect(find.byType(FeedTabs), findsOneWidget);
+    expect(find.byType(TimelineCategoryTabs), findsOneWidget);
   });
 
   testWidgets('フッタータブで画面を切り替えられる', (WidgetTester tester) async {
@@ -43,7 +43,7 @@ void main() {
 
     await tester.tap(find.text('ホーム'));
     await tester.pumpAndSettle();
-    expect(find.byType(FeedTabs), findsOneWidget);
+    expect(find.byType(TimelineCategoryTabs), findsOneWidget);
   });
 
   testWidgets('スマホ幅ではホームに水色のヘッダーを表示する', (WidgetTester tester) async {
@@ -52,7 +52,7 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
 
-    expect(find.byType(FeedHeader), findsOneWidget);
+    expect(find.byType(TimelineHeader), findsOneWidget);
     expect(find.byType(DesktopTopBar), findsNothing);
     expect(find.text('Zero'), findsOneWidget);
   });
@@ -65,7 +65,7 @@ void main() {
 
     expect(find.byType(DesktopTopBar), findsOneWidget);
     expect(find.byType(BottomNavBar), findsNothing);
-    expect(find.byType(FeedHeader), findsNothing);
+    expect(find.byType(TimelineHeader), findsNothing);
     expect(find.text('投稿する'), findsOneWidget);
 
     await tester.tap(find.text('通知'));
@@ -93,31 +93,31 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
 
-    expect(find.byType(FeedTabs), findsOneWidget);
+    expect(find.byType(TimelineCategoryTabs), findsOneWidget);
     // フィルターボタンは仕様が決まるまで非表示
     expect(find.byTooltip('投稿をフィルター'), findsNothing);
 
-    FeedTab selectedTab() => ProviderScope.containerOf(
+    TimelineCategory selectedCategory() => ProviderScope.containerOf(
       tester.element(find.byType(HomeScreen)),
-    ).read(selectedFeedTabProvider);
+    ).read(selectedTimelineCategoryProvider);
 
-    expect(selectedTab(), FeedTab.latest);
+    expect(selectedCategory(), TimelineCategory.latest);
 
     // 「日報」などは投稿のタイトルにもあるので、タブの帯の中から探す
-    for (final tab in [
-      FeedTab.announcement,
-      FeedTab.dailyReport,
-      FeedTab.selfStudy,
-      FeedTab.latest,
+    for (final category in [
+      TimelineCategory.announcement,
+      TimelineCategory.dailyReport,
+      TimelineCategory.selfStudy,
+      TimelineCategory.latest,
     ]) {
       await tester.tap(
         find.descendant(
-          of: find.byType(FeedTabs),
-          matching: find.text(tab.label),
+          of: find.byType(TimelineCategoryTabs),
+          matching: find.text(category.label),
         ),
       );
       await tester.pumpAndSettle();
-      expect(selectedTab(), tab);
+      expect(selectedCategory(), category);
     }
   });
 
@@ -127,10 +127,13 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
 
-    expect(find.byType(FeedTabs), findsOneWidget);
+    expect(find.byType(TimelineCategoryTabs), findsOneWidget);
     for (final label in ['最新', 'お知らせ', '日報', '自己学習']) {
       expect(
-        find.descendant(of: find.byType(FeedTabs), matching: find.text(label)),
+        find.descendant(
+          of: find.byType(TimelineCategoryTabs),
+          matching: find.text(label),
+        ),
         findsOneWidget,
       );
     }
