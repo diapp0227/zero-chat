@@ -20,7 +20,7 @@ Flutter によるマルチプラットフォーム開発と AWS サーバーレ�
 | アプリ | Flutter / Dart |
 | 状態管理・DI | Riverpod 3 (`flutter_riverpod`) |
 | 画面遷移 | go_router |
-| 通信 | http |
+| 通信 | HTTPS (`http` パッケージ) |
 | API | Amazon API Gateway (HTTP API) + AWS Lambda (Python 3.13) |
 | データベース | Amazon DynamoDB |
 | Web 版の配信 | Amazon S3 + Amazon CloudFront |
