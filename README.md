@@ -3,6 +3,10 @@
 Flutter によるマルチプラットフォーム開発と AWS サーバーレス構築を学ぶため、自己学習で設計から公開まで行ったチャットアプリです。
 1 つのコードで iOS / Android / Web / デスクトップに対応しています。
 
+| iOS | Web |
+|:---:|:---:|
+| <img src="docs/public/images/zero-chat_iOS.png" alt="iOS 版のタイムライン画面" width="220"> | <img src="docs/public/images/zero-chat_Web.png" alt="Web 版のタイムライン画面" width="560"> |
+
 ## プロジェクト概要
 
 ### できること
