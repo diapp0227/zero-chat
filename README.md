@@ -14,6 +14,8 @@ Flutter によるマルチプラットフォーム開発と AWS サーバーレ�
 - タイムラインで投稿を新しい順に表示する (1 回の読み込みで最新 10 件)
 - 投稿の種類で絞り込む (最新 / お知らせ / 日報 / 自己学習)
 - 投稿への返信を、投稿の下に開いたり閉じたりして表示する
+- 投稿する (種類を選び、本文を 180 文字まで入力して送信する。送信後はタイムラインに反映される)
+- プロフィール (ユーザー名・役職) を設定する。投稿にはこの名前と役職が表示される (今はアプリを閉じると設定が消える)
 - 画面の幅に合わせてレイアウトを切り替える (スマホ: 下のタブバー / PC: 上部のバー)
 
 
@@ -40,12 +42,16 @@ flowchart LR
 
     subgraph AWS
         CF[CloudFront] --> S3[(S3<br/>Web 版のファイル)]
-        APIGW["API Gateway<br/>GET /posts"] --> Lambda[Lambda] --> DDB[(DynamoDB)]
+        APIGW["API Gateway"]
+        APIGW -->|GET /posts| GetLambda["Lambda<br/>投稿の取得"]
+        APIGW -->|POST /posts| CreateLambda["Lambda<br/>投稿の作成"]
+        GetLambda --> DDB[(DynamoDB)]
+        CreateLambda --> DDB
     end
 
     Browser -->|画面のファイルを取得| CF
-    Browser -->|投稿を取得| APIGW
-    Mobile -->|投稿を取得| APIGW
+    Browser -->|投稿を取得・作成| APIGW
+    Mobile -->|投稿を取得・作成| APIGW
 ```
 
 アプリの内部は、Flutter 公式が推奨する MVVM + レイヤードアーキテクチャ (UI / Domain / Data) で作っている。
@@ -64,11 +70,13 @@ zero-chat/
 │   │   │   ├── core/                #   共通の Widget・テーマ・色
 │   │   │   ├── shell/               #   タブバー・上部バーなど画面の外枠
 │   │   │   ├── home/                #   ホーム (タイムライン) 画面と ViewModel
+│   │   │   ├── compose/             #   投稿画面と ViewModel
+│   │   │   ├── profile/             #   プロフィール設定画面
 │   │   │   └── placeholder/         #   未実装の画面の仮表示
 │   │   ├── domain/
 │   │   │   └── models/              # Domain layer (投稿・返信・投稿者などのモデル)
 │   │   └── data/                    # Data layer
-│   │       ├── repositories/post/   #   投稿の取得 (サーバー版 / 仮データ版)
+│   │       ├── repositories/post/   #   投稿の取得・作成 (サーバー版 / 仮データ版)
 │   │       └── services/api/        #   サーバーとの通信
 │   ├── test/                        # テスト (lib/ と同じ構成)
 │   ├── assets/                      # アイコン・ロゴの SVG
@@ -77,7 +85,8 @@ zero-chat/
 │   ├── android/ ios/ web/           # 各プラットフォーム固有の設定
 │   └── macos/ windows/ linux/
 ├── Lambda/                          # AWS Lambda 関数のコード
-│   └── zero-chat-get-posts/         #   投稿取得 API (GET /posts)
+│   ├── zero-chat-get-posts/         #   投稿取得 API (GET /posts)
+│   └── zero-chat-create-post/       #   投稿作成 API (POST /posts)
 ├── docs/public/                     # 構築手順・仕様のドキュメント
 └── flutter-architecture.md          # アプリの設計方針
 ```
@@ -123,6 +132,7 @@ flutter pub get
 #### 仮のデータで起動する
 
 サーバーがなくても、アプリに組み込んだ仮の投稿データで動かせる。
+投稿した内容はアプリの中 (メモリ) にだけ保存され、アプリを閉じると消える。
 
 ```bash
 flutter run
@@ -150,7 +160,8 @@ flutter run -d chrome --web-port 8080 --dart-define-from-file=config/api.json
 
 ※ `--dart-define` の値はアプリに埋め込まれるため、秘密の情報は渡さない。
 
-※ API 自体の作り方は [posts-api-aws.md](docs/public/posts-api-aws.md) を参照。
+※ API 自体の作り方は、投稿の取得は [posts-api-aws.md](docs/public/posts-api-aws.md)、
+投稿の作成は [create-post-api-aws.md](docs/public/create-post-api-aws.md) を参照。
 
 ### 3. テストする
 
