@@ -273,9 +273,8 @@ Cognito から返ってきた例外を理由ごとにまとめ、ボタンの上
 
 ## 公開範囲と今後の課題
 
-- **API はまだ保護されていない**。サインインしなくても API の URL を知っていれば投稿の取得・作成ができる。
-  次の段階で HTTP API (`zero-chat-api`) に JWT オーソライザーを付け、
-  発行元 `https://cognito-idp.ap-northeast-1.amazonaws.com/<ユーザープールID>`・対象 `<クライアントID>` のトークンだけを受け付けるようにする
+- API (`zero-chat-api`) は、JWT オーソライザーでサインインした人だけが使えるようにする。
+  手順は [api-jwt-auth-aws.md](api-jwt-auth-aws.md)
 - 投稿した人 (`author`) はまだアプリから送った名前と役職のまま。API を保護したら、トークンのユーザー (`sub`) から決めるようにする
 - プロフィール (名前・役職) はまだアプリのメモリ上だけ。Cognito のユーザー属性か DynamoDB に保存する
 - 「パスワードを忘れた方」(`resetPassword` / `confirmResetPassword`) は画面のデザインができてから作る
