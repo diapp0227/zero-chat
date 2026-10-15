@@ -5,7 +5,7 @@ extension AuthFailureMessage on AuthFailureReason {
   /// サインイン画面のボタンの上に出すメッセージ
   String get message => switch (this) {
     AuthFailureReason.emailAlreadyExists => 'このメールアドレスはすでに登録されています。サインインしてください',
-    AuthFailureReason.invalidPassword => 'パスワードが条件を満たしていません',
+    AuthFailureReason.invalidPassword => 'パスワードは8文字以上で入力してください',
     AuthFailureReason.wrongCredentials => 'メールアドレスまたはパスワードが正しくありません',
     AuthFailureReason.codeMismatch => '認証コードが正しくありません',
     AuthFailureReason.codeExpired => '認証コードの有効期限が切れています。コードを再送してください',
