@@ -118,5 +118,42 @@ void main() {
         ),
       );
     });
+
+    test('アクセストークンがあれば、GET と POST に Bearer で付ける', () async {
+      final headers = <Map<String, String>>[];
+      final client = MockClient((request) async {
+        headers.add(request.headers);
+        return jsonResponse({}, 200);
+      });
+      final service = HttpApiService(
+        baseUrl: baseUrl,
+        accessToken: () async => 'token123',
+        client: client,
+      );
+
+      await service.getJson('/posts');
+      await service.postJson('/posts', body: {'text': 'a'});
+
+      expect(headers, hasLength(2));
+      for (final h in headers) {
+        expect(h['Authorization'], 'Bearer token123');
+      }
+    });
+
+    test('アクセストークンが null なら Authorization を付けない', () async {
+      Map<String, String>? headers;
+      final client = MockClient((request) async {
+        headers = request.headers;
+        return jsonResponse({}, 200);
+      });
+
+      await HttpApiService(
+        baseUrl: baseUrl,
+        accessToken: () async => null,
+        client: client,
+      ).getJson('/posts');
+
+      expect(headers!.containsKey('Authorization'), isFalse);
+    });
   });
 }
