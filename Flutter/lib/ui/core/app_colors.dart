@@ -189,4 +189,16 @@ abstract final class AppColors {
 
   /// プロフィール設定画面：選択中の入力欄の外側の帯
   static const profileFieldFocusRing = Color(0xFFE7E9D8);
+
+  /// 投稿画面：「ユーザー名を設定してください」のお知らせの背景
+  static const composeNoticeBackground = Color(0xFFF4F5E9);
+
+  /// 投稿画面：「ユーザー名を設定してください」のお知らせの文字
+  static const composeNoticeText = Color(0xFF59681F);
+
+  /// 投稿画面：送信に失敗したときのメッセージの背景
+  static const composeErrorBackground = Color(0xFFF8ECE9);
+
+  /// 投稿画面：送信に失敗したときのメッセージの文字
+  static const composeErrorText = Color(0xFFA14D42);
 }
