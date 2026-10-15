@@ -3,6 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zero_chat/app.dart';
+import 'package:zero_chat/ui/auth/auth_screen.dart';
+import 'package:zero_chat/ui/auth/auth_session.dart';
+import 'package:zero_chat/ui/auth/widgets/auth_buttons.dart';
+import 'package:zero_chat/ui/auth/widgets/auth_mode_tabs.dart';
+import 'package:zero_chat/ui/core/profile_menu_button.dart';
 import 'package:zero_chat/ui/home/timeline_category.dart';
 import 'package:zero_chat/ui/home/home_screen.dart';
 import 'package:zero_chat/ui/home/timeline_post.dart';
@@ -13,6 +18,12 @@ import 'package:zero_chat/ui/shell/bottom_nav_bar.dart';
 import 'package:zero_chat/ui/shell/desktop_top_bar.dart';
 
 void main() {
+  // サインイン済みの状態でアプリを開く
+  final signedInApp = ProviderScope(
+    overrides: [authSessionProvider.overrideWithBuild((ref, notifier) => true)],
+    child: const App(),
+  );
+
   void setScreenSize(WidgetTester tester, Size size) {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -20,7 +31,7 @@ void main() {
   }
 
   testWidgets('ホーム画面が表示される', (WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(signedInApp);
     await tester.pumpAndSettle();
 
     expect(find.byType(TimelineCategoryTabs), findsOneWidget);
@@ -29,7 +40,7 @@ void main() {
   testWidgets('フッタータブで画面を切り替えられる', (WidgetTester tester) async {
     setScreenSize(tester, const Size(390, 844));
 
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(signedInApp);
     await tester.pumpAndSettle();
 
     for (final label in ['ホーム', '見つける', '通知', '組織', 'メッセージ']) {
@@ -49,7 +60,7 @@ void main() {
   testWidgets('スマホ幅ではホームに水色のヘッダーを表示する', (WidgetTester tester) async {
     setScreenSize(tester, const Size(390, 844));
 
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(signedInApp);
     await tester.pumpAndSettle();
 
     expect(find.byType(TimelineHeader), findsOneWidget);
@@ -60,7 +71,7 @@ void main() {
   testWidgets('expanded 幅では上部バーでタブを切り替える', (WidgetTester tester) async {
     setScreenSize(tester, const Size(1200, 800));
 
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(signedInApp);
     await tester.pumpAndSettle();
 
     expect(find.byType(DesktopTopBar), findsOneWidget);
@@ -76,7 +87,7 @@ void main() {
   testWidgets('プロフィールメニューを開ける', (WidgetTester tester) async {
     setScreenSize(tester, const Size(390, 844));
 
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(signedInApp);
     await tester.pumpAndSettle();
 
     expect(find.text('ログアウト'), findsNothing);
@@ -90,7 +101,7 @@ void main() {
   testWidgets('タイムラインのタブを切り替えられる', (WidgetTester tester) async {
     setScreenSize(tester, const Size(390, 844));
 
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(signedInApp);
     await tester.pumpAndSettle();
 
     expect(find.byType(TimelineCategoryTabs), findsOneWidget);
@@ -124,7 +135,7 @@ void main() {
   testWidgets('expanded 幅でもタブを表示する', (WidgetTester tester) async {
     setScreenSize(tester, const Size(1200, 800));
 
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(signedInApp);
     await tester.pumpAndSettle();
 
     expect(find.byType(TimelineCategoryTabs), findsOneWidget);
@@ -143,7 +154,7 @@ void main() {
     testWidgets('保存・その他メニューのボタンは表示しない', (WidgetTester tester) async {
       setScreenSize(tester, const Size(390, 844));
 
-      await tester.pumpWidget(const ProviderScope(child: App()));
+      await tester.pumpWidget(signedInApp);
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel('保存'), findsNothing);
@@ -174,6 +185,86 @@ void main() {
       await tester.tap(find.bySemanticsLabel('保存を解除'));
       await tester.pumpAndSettle();
       expect(find.bySemanticsLabel('保存'), findsOneWidget);
+    });
+  });
+
+  group('サインイン画面', () {
+    testWidgets('サインインしていなければサインイン画面を表示する', (WidgetTester tester) async {
+      setScreenSize(tester, const Size(390, 844));
+
+      await tester.pumpWidget(const ProviderScope(child: App()));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AuthScreen), findsOneWidget);
+      expect(find.byType(TimelineCategoryTabs), findsNothing);
+      expect(find.text('サインアップ'), findsOneWidget);
+    });
+
+    testWidgets('サインアップすると認証コードを入力してホームへ進む', (WidgetTester tester) async {
+      setScreenSize(tester, const Size(390, 844));
+
+      await tester.pumpWidget(const ProviderScope(child: App()));
+      await tester.pumpAndSettle();
+
+      final submit = find.byType(AuthSubmitButton);
+      await tester.enterText(find.byType(TextField).at(0), 'a@example.com');
+      await tester.enterText(find.byType(TextField).at(1), '123');
+      await tester.pump();
+      await tester.tap(submit);
+      await tester.pumpAndSettle();
+      // パスワードが短いうちは進まない
+      expect(find.text('認証コードを入力'), findsNothing);
+
+      await tester.enterText(find.byType(TextField).at(1), '123456');
+      await tester.pump();
+      await tester.tap(submit);
+      await tester.pumpAndSettle();
+      expect(find.text('認証コードを入力'), findsOneWidget);
+      expect(find.textContaining('a@example.com に送信した'), findsOneWidget);
+
+      // 数字以外は入らず、6桁までしか入らない
+      await tester.enterText(find.byType(TextField), '12ab345678');
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '123456',
+      );
+
+      await tester.tap(find.byType(AuthSubmitButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(AuthScreen), findsNothing);
+      expect(find.byType(TimelineCategoryTabs), findsOneWidget);
+    });
+
+    testWidgets('サインインするとホームへ進み、ログアウトで戻る', (WidgetTester tester) async {
+      setScreenSize(tester, const Size(1200, 800));
+
+      await tester.pumpWidget(const ProviderScope(child: App()));
+      await tester.pumpAndSettle();
+      expect(find.text('WORKPLACE SOCIAL'), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AuthModeTabs),
+          matching: find.text('サインイン'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('おかえりなさい'), findsOneWidget);
+      expect(find.text('パスワードを忘れた方'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).at(0), 'a@example.com');
+      await tester.enterText(find.byType(TextField).at(1), '123456');
+      await tester.pump();
+      await tester.tap(find.byType(AuthSubmitButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(DesktopTopBar), findsOneWidget);
+
+      await tester.tap(find.byType(ProfileMenuButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ログアウト'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AuthScreen), findsOneWidget);
     });
   });
 }
