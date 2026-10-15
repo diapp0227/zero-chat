@@ -195,4 +195,70 @@ abstract final class AppColors {
 
   /// 投稿画面：送信に失敗したときのメッセージの文字
   static const composeErrorText = Color(0xFFA14D42);
+
+  /// サインイン画面：PC でカードの後ろに敷く背景
+  static const authPageBackground = Color(0xFFEEF7F8);
+
+  /// サインイン画面：PC のカードの枠線
+  static const authCardBorder = Color(0xFFCCE4E7);
+
+  /// サインイン画面：PC のカードの影
+  static const authCardShadow = Color(0x18263746);
+
+  /// サインイン画面：左の水色の面の見出し・ロゴ横の文字・メモのアイコンの背景
+  static const authBrandText = Color(0xFF263746);
+
+  /// サインイン画面：左の水色の面の右上の円の線
+  static const authBrandRing = Color(0x59FFFFFF);
+
+  /// サインイン画面：右上の円の外側の帯 (内側)
+  static const authBrandRingInner = Color(0x14FFFFFF);
+
+  /// サインイン画面：右上の円の外側の帯 (外側)
+  static const authBrandRingOuter = Color(0x0FFFFFFF);
+
+  /// サインイン画面：左の水色の面の「WORKPLACE SOCIAL」
+  static const authBrandEyebrow = Color(0xFF4D6D72);
+
+  /// サインイン画面：左の水色の面の見出しの下の説明文
+  static const authBrandBody = Color(0xFF38575C);
+
+  /// サインイン画面：左下のメモの上の線
+  static const authBrandNoteBorder = Color(0x70FFFFFF);
+
+  /// サインイン画面：左下のメモの文字
+  static const authBrandNoteText = Color(0xFF496A6F);
+
+  /// サインイン画面：フォームの上の「WELCOME TO ZERO」
+  static const authEyebrow = Color(0xFF819034);
+
+  /// サインイン画面：フォームの見出しの下の説明文
+  static const authSubtitle = Color(0xFF919188);
+
+  /// サインイン画面：サインアップ・サインインの切り替えの背景
+  static const authSegmentBackground = Color(0xFFEEEEE8);
+
+  /// サインイン画面：切り替えの選ばれていない側の文字
+  static const authSegmentInactive = Color(0xFF8D8D84);
+
+  /// サインイン画面：切り替えの選ばれている側の影
+  static const authSegmentShadow = Color(0x12263746);
+
+  /// サインイン画面：入力欄の上の項目名 (メールアドレス・パスワード)
+  static const authFieldLabel = Color(0xFF565750);
+
+  /// サインイン画面：入力欄の左のメールのアイコン
+  static const authFieldIcon = Color(0xFF9B9B92);
+
+  /// サインイン画面：入力欄の左の ＊ と #
+  static const authFieldMark = Color(0xFF8E9E4C);
+
+  /// サインイン画面：認証コードの下の「コードの有効期限は10分です」
+  static const authHelpText = Color(0xFF9B9B92);
+
+  /// サインイン画面：押せる文字 (パスワードを忘れた方・コードを再送 など)
+  static const authLink = Color(0xFF718029);
+
+  /// サインイン画面：「アカウントを作成」「サインイン」ボタンの影
+  static const authSubmitShadow = Color(0x28263746);
 }
