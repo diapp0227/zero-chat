@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../auth/auth_session.dart';
 import '../profile/current_profile.dart';
 import '../profile/profile_settings_screen.dart';
 import 'app_colors.dart';
@@ -40,7 +41,7 @@ class ProfileMenuButton extends ConsumerWidget {
   /// ボタンの下端からメニューまでの間隔
   final double menuGap;
 
-  /// 項目が押されたときの処理 (「プロフィール設定」はこのボタンが画面を開く)
+  /// 項目が押されたときの処理 (「プロフィール設定」の画面を開く・ログアウトはこのボタンが行う)
   final ValueChanged<ProfileMenuAction>? onSelected;
 
   static const _menuWidth = 180.0;
@@ -75,8 +76,12 @@ class ProfileMenuButton extends ConsumerWidget {
             child: _ProfileMenuItem(
               action: action,
               onPressed: () {
-                if (action == ProfileMenuAction.settings) {
-                  showProfileSettingsScreen(context);
+                switch (action) {
+                  case ProfileMenuAction.settings:
+                    showProfileSettingsScreen(context);
+                  case ProfileMenuAction.logout:
+                    // サインイン画面への移動は router の redirect が行う
+                    ref.read(authSessionProvider.notifier).signOut();
                 }
                 onSelected?.call(action);
               },
