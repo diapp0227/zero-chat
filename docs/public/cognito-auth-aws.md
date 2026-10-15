@@ -184,32 +184,89 @@ aws cognito-idp confirm-sign-up \
 
 ## 5. アプリから使う
 
-ユーザープール ID とクライアント ID は、API の URL と同じく `config/api.json` に書き、
-ビルド時に `--dart-define-from-file=config/api.json` で渡す。
+### 5-1. 設定を渡す
+
+ユーザープール ID とアプリケーションクライアント ID は、API の URL と同じく `config/api.json` に書き、
+起動・ビルドのときに `--dart-define-from-file=config/api.json` で渡す。
+ひな形は `config/api.example.json`。`config/api.json` は `.gitignore` 済みなので、リポジトリには入らない。
 
 ```json
 {
   "API_BASE_URL": "https://<API ID>.execute-api.ap-northeast-1.amazonaws.com",
   "COGNITO_USER_POOL_ID": "ap-northeast-1_xxxxxxxxx",
-  "COGNITO_CLIENT_ID": "<クライアントID>"
+  "COGNITO_CLIENT_ID": "<アプリケーションクライアントID>"
 }
 ```
 
+- **リージョンは設定しない**。ユーザープール ID の「`_`」より前 (例: `ap-northeast-1`) をリージョンとして使うので、
+  東京以外のリージョンに作ったユーザープールでもそのまま動く
+- Amplify の設定ファイル (`amplify_outputs.json`) や Amplify CLI は使わない。
+  アプリの起動時に、上の 2 つの ID から同じ形の設定をコードで組み立てて渡す
+- 2 つの ID のどちらかが渡されていなければ Cognito にはつながず、メモリ上だけで動く仮の実装を使う。
+  このときの確認コードは常に `123456` で、登録したアカウントはアプリを閉じると消える
+
+```bash
+# Cognito につないで Web 版を動かす
+cd Flutter
+flutter run -d chrome --web-port 8090 --dart-define-from-file=config/api.json
+```
+
+### 5-2. 使うパッケージ
+
+| パッケージ | 役割 |
+|---|---|
+| `amplify_flutter` | Amplify の本体。設定の読み込みと `Amplify.Auth` の入り口 |
+| `amplify_auth_cognito` | Cognito のユーザープールとのやり取り。SRP の計算、トークンの端末への保存と自動更新 |
+
+対応する OS のバージョン (iOS 13 以上・Android 7.0 (API 24) 以上) は、このアプリの設定ですでに満たしている。
+macOS アプリとして動かす場合は、トークンを保存するためにキーチェーンの設定 (Keychain Sharing) の追加が必要 (未設定)。
+
+### 5-3. ファイルの構成
+
 | 層 | ファイル | 役割 |
 |---|---|---|
-| UI | `lib/ui/auth/auth_screen.dart` | 入力を受け取り、サインアップ・確認・サインインを呼ぶ。送信中の表示とエラーの表示 |
-| UI | `lib/ui/auth/auth_session.dart` | サインインしているかを保持する。起動時に前回のサインインが残っているかを確認する |
-| Data | `lib/data/repositories/auth/` (予定) | Cognito とのやり取り。設定がないときは仮の実装を使う |
+| — | `lib/main.dart` | 起動時に Amplify を準備し、前回のサインインが端末に残っているかを確認する |
+| UI | `lib/ui/auth/auth_screen.dart` | 入力を受け取り、ViewModel を呼ぶ。送信中は「送信中…」、失敗したらボタンの上にメッセージを出す |
+| UI | `lib/ui/auth/auth_view_model.dart` | サインアップ・確認・サインイン・コードの再送を呼び、送信中・失敗の状態を持つ |
+| UI | `lib/ui/auth/auth_failure_message.dart` | 失敗の理由を画面に出すメッセージにする |
+| UI | `lib/ui/auth/auth_session.dart` | サインインしているかを保持する。router はこれを見て、サインイン画面とホームを切り替える |
+| Data | `lib/data/repositories/auth/auth_repository.dart` | 認証の窓口 (抽象クラス) と、失敗の理由 (`AuthFailure`) |
+| Data | `lib/data/repositories/auth/cognito_auth_repository.dart` | Amplify で Cognito を呼ぶ実装。Amplify の例外を `AuthFailure` に変換する |
+| Data | `lib/data/repositories/auth/fake_auth_repository.dart` | メモリ上だけで動く仮の実装 (設定がないとき・テスト用) |
+| Data | `lib/data/repositories/auth/auth_repository_provider.dart` | 設定があれば Cognito 用、なければ仮の実装を使う |
 
-アプリでの流れ:
+### 5-4. アプリでの流れ
 
 | 画面の操作 | 呼ぶもの | 補足 |
 |---|---|---|
+| アプリを開く | `Amplify.Auth.fetchAuthSession` | 前回のサインインが残っていれば、サインイン画面を飛ばしてホームを開く |
 | 「アカウントを作成」 | `Amplify.Auth.signUp` | 成功したら確認コードの入力へ進む |
 | 「認証してはじめる」 | `Amplify.Auth.confirmSignUp` → `Amplify.Auth.signIn` | コードの確認だけではサインインしないので、続けて入力済みのパスワードでサインインする |
-| 「コードを再送」 | `Amplify.Auth.resendSignUpCode` | |
-| 「サインイン」 | `Amplify.Auth.signIn` | 未確認のユーザーなら確認コードの入力へ進む |
-| 「ログアウト」 | `Amplify.Auth.signOut` | |
+| 「コードを再送」 | `Amplify.Auth.resendSignUpCode` | 成功したら「認証コードを再送しました」と出す |
+| 「サインイン」 | `Amplify.Auth.signIn` | 確認がまだのアカウントなら、`resendSignUpCode` で新しいコードを送ってから確認コードの入力へ進む (サインアップ時のコードは期限切れのことがあるため) |
+| 「ログアウト」 | `Amplify.Auth.signOut` | 端末のサインインの情報を消す。消せなかったときも、画面はサインイン画面に戻す |
+
+### 5-5. 失敗したときの表示
+
+Cognito から返ってきた例外を理由ごとにまとめ、ボタンの上に次のメッセージを出す。
+
+| Cognito の例外 | 画面のメッセージ |
+|---|---|
+| `UsernameExistsException` | このメールアドレスはすでに登録されています。サインインしてください |
+| `InvalidPasswordException` | パスワードが条件を満たしていません |
+| `NotAuthorizedException`・`UserNotFoundException` | メールアドレスまたはパスワードが正しくありません |
+| `CodeMismatchException` | 認証コードが正しくありません |
+| `ExpiredCodeException` | 認証コードの有効期限が切れています。コードを再送してください |
+| `CodeDeliveryFailureException` | 認証コードを送信できませんでした。メールアドレスを確認してください |
+| `LimitExceededException`・`TooManyRequestsException`・`TooManyFailedAttemptsException` | 試行回数が多すぎます。時間をおいて、もう一度お試しください |
+| 通信できない | 通信できませんでした。接続を確認して、もう一度お試しください |
+| それ以外 | うまくいきませんでした。時間をおいて、もう一度お試しください |
+
+- 「ユーザー存在エラーの防止」が有効なので、登録されていないメールアドレスでサインインしても
+  `NotAuthorizedException` になり、パスワード違いと同じメッセージになる
+- パスワードの条件 (8 文字以上・大文字・小文字・数字・記号) はアプリでも確かめていて、
+  満たすまで「アカウントを作成」は押せない。そのため `InvalidPasswordException` は、
+  ユーザープール側のパスワードポリシーを変えたときなどにしか出ない
 
 ---
 
