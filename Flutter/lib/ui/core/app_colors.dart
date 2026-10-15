@@ -120,4 +120,73 @@ abstract final class AppColors {
 
   /// 返信の一覧の左の線
   static const repliesBorderLeft = Color(0xFFE7E9D8);
+
+  /// 投稿画面・プロフィール設定画面：PC で画面の後ろに敷く半透明の黒
+  static const sheetBarrier = Color(0x99191A16);
+
+  /// 投稿画面・プロフィール設定画面：見出しの行の下の線、投稿画面のツールバーの上の線
+  static const sheetDivider = Color(0xFFE5E4DC);
+
+  /// 投稿画面・プロフィール設定画面：「キャンセル」「戻る」の文字
+  static const sheetCancel = Color(0xFF77776F);
+
+  /// 投稿画面・プロフィール設定画面：押せない「投稿する」「保存」ボタンの背景
+  static const sheetPrimaryDisabled = Color(0xFFD5D5CB);
+
+  /// 入力欄のヒント・文字数 (プロフィール設定)、投稿の種類の右の ＞
+  static const inputHint = Color(0xFFAAA99F);
+
+  /// 投稿画面・プロフィール設定画面：見出しの下の説明文
+  static const sheetSubtitle = Color(0xFF92928A);
+
+  /// 入力欄に入力した文字
+  static const inputText = Color(0xFF30312B);
+
+  /// 投稿画面：文字数の表示
+  static const composeCounter = Color(0xFF9B9B92);
+
+  /// 投稿画面：ツールバーのアイコン (画像・気分・予約)
+  static const composeTool = Color(0xFF718029);
+
+  /// 投稿画面：ツールバーのアイコンにマウスを乗せたときの背景
+  static const composeToolHover = Color(0xFFEFEFE3);
+
+  /// 投稿の種類の選択肢：枠線
+  static const categoryOptionBorder = Color(0xFFE1E0D8);
+
+  /// 投稿の種類の選択肢：背景
+  static const categoryOptionBackground = Color(0xFFFBFAF6);
+
+  /// 投稿の種類の選択肢：マウスを乗せたときの枠線
+  static const categoryOptionHoverBorder = Color(0xFFBCC69A);
+
+  /// 投稿の種類の選択肢：マウスを乗せたときの背景
+  static const categoryOptionHoverBackground = Color(0xFFF4F5E9);
+
+  /// 投稿の種類の選択肢：種類の名前
+  static const categoryOptionText = Color(0xFF34352E);
+
+  /// 投稿の種類の選択肢：種類の説明
+  static const categoryOptionDescription = Color(0xFF8D8D84);
+
+  /// 投稿の種類の選択肢：左のアイコン
+  static const categoryOptionIcon = Color(0xFF667725);
+
+  /// 投稿の種類の選択肢：左のアイコンの背景
+  static const categoryOptionIconBackground = Color(0xFFE9ECD8);
+
+  /// プロフィール設定画面：「プロフィール情報」の下の線
+  static const profileIntroDivider = Color(0xFFE9E8E1);
+
+  /// プロフィール設定画面：入力欄の上の項目名 (ユーザー名・役職)
+  static const profileFieldLabel = Color(0xFF55564F);
+
+  /// プロフィール設定画面：入力欄の背景
+  static const profileFieldBackground = Color(0xFFFBFAF6);
+
+  /// プロフィール設定画面：選択中の入力欄の枠線
+  static const profileFieldFocusBorder = Color(0xFF879750);
+
+  /// プロフィール設定画面：選択中の入力欄の外側の帯
+  static const profileFieldFocusRing = Color(0xFFE7E9D8);
 }
