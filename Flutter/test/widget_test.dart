@@ -208,14 +208,14 @@ void main() {
 
       final submit = find.byType(AuthSubmitButton);
       await tester.enterText(find.byType(TextField).at(0), 'a@example.com');
-      await tester.enterText(find.byType(TextField).at(1), '123');
+      await tester.enterText(find.byType(TextField).at(1), 'password');
       await tester.pump();
       await tester.tap(submit);
       await tester.pumpAndSettle();
-      // パスワードが短いうちは進まない
+      // パスワードが条件 (大文字・数字・記号) を満たさないうちは進まない
       expect(find.text('認証コードを入力'), findsNothing);
 
-      await tester.enterText(find.byType(TextField).at(1), '123456');
+      await tester.enterText(find.byType(TextField).at(1), 'Passw0rd!');
       await tester.pump();
       await tester.tap(submit);
       await tester.pumpAndSettle();
@@ -265,6 +265,22 @@ void main() {
       await tester.tap(find.text('ログアウト'));
       await tester.pumpAndSettle();
       expect(find.byType(AuthScreen), findsOneWidget);
+    });
+  });
+
+  group('パスワードの条件', () {
+    test('8文字以上で大文字・小文字・数字・記号を含めば通る', () {
+      expect(AuthScreen.isValidPassword('Passw0rd!'), isTrue);
+      expect(AuthScreen.isValidPassword('Ab1-cdef'), isTrue);
+    });
+
+    test('条件を1つでも満たさなければ通らない', () {
+      expect(AuthScreen.isValidPassword('Pa0!'), isFalse); // 8文字未満
+      expect(AuthScreen.isValidPassword('passw0rd!'), isFalse); // 大文字なし
+      expect(AuthScreen.isValidPassword('PASSW0RD!'), isFalse); // 小文字なし
+      expect(AuthScreen.isValidPassword('Password!'), isFalse); // 数字なし
+      expect(AuthScreen.isValidPassword('Passw0rdd'), isFalse); // 記号なし
+      expect(AuthScreen.isValidPassword('Passw0rdあ'), isFalse); // 日本語は記号に数えない
     });
   });
 }
