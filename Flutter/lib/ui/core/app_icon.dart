@@ -12,6 +12,7 @@ enum AppIconName {
   mail('mail'),
   plus('plus'),
   chevronDown('chevron_down'),
+  chevronRight('chevron_right'),
   settings('settings'),
   history('history'),
   help('help'),
@@ -20,7 +21,11 @@ enum AppIconName {
   bookmark('bookmark'),
   bookmarkFilled('bookmark_filled'),
   comment('comment'),
-  more('more');
+  more('more'),
+  image('image'),
+  smile('smile'),
+  calendar('calendar'),
+  sparkles('sparkles');
 
   const AppIconName(this.fileName);
 
