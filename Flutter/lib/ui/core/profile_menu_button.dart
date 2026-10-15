@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../profile/current_profile.dart';
+import '../profile/profile_settings_screen.dart';
 import 'app_colors.dart';
 import 'app_icon.dart';
 import 'avatar.dart';
 
 /// プロフィールメニューの項目
 enum ProfileMenuAction {
-  // settings('プロフィール設定', AppIconName.settings),
+  settings('プロフィール設定', AppIconName.settings),
   // history('利用履歴', AppIconName.history),
   // help('ヘルプ', AppIconName.help),
   logout('ログアウト', AppIconName.logout);
@@ -23,7 +26,7 @@ enum ProfileMenuAction {
 /// アバター + ▼ のボタン。押すとプロフィールメニューを開く
 ///
 /// PC の上部バーとスマホのヘッダーで共通
-class ProfileMenuButton extends StatelessWidget {
+class ProfileMenuButton extends ConsumerWidget {
   const ProfileMenuButton({
     super.key,
     this.foregroundColor = AppColors.menuText,
@@ -37,7 +40,7 @@ class ProfileMenuButton extends StatelessWidget {
   /// ボタンの下端からメニューまでの間隔
   final double menuGap;
 
-  /// 項目が押されたときの処理 (なければ押してもメニューが閉じるだけ)
+  /// 項目が押されたときの処理 (「プロフィール設定」はこのボタンが画面を開く)
   final ValueChanged<ProfileMenuAction>? onSelected;
 
   static const _menuWidth = 180.0;
@@ -46,7 +49,9 @@ class ProfileMenuButton extends StatelessWidget {
   static const _buttonWidth = 47.0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(currentProfileProvider);
+
     return MenuAnchor(
       alignmentOffset: Offset(_buttonWidth - _menuWidth, menuGap),
       style: MenuStyle(
@@ -69,7 +74,12 @@ class ProfileMenuButton extends StatelessWidget {
             width: _menuWidth - 12,
             child: _ProfileMenuItem(
               action: action,
-              onPressed: () => onSelected?.call(action),
+              onPressed: () {
+                if (action == ProfileMenuAction.settings) {
+                  showProfileSettingsScreen(context);
+                }
+                onSelected?.call(action);
+              },
             ),
           ),
       ],
@@ -88,10 +98,9 @@ class ProfileMenuButton extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ログインユーザーの情報は「投稿の情報注入」で差し替える
-                  const Avatar(
-                    name: 'A',
-                    colors: (Color(0xFFE8BD79), Color(0xFFB87947)),
+                  Avatar(
+                    name: profile.name,
+                    colors: currentUserAvatarColors,
                     size: AvatarSize.sm,
                   ),
                   const SizedBox(width: 4),
