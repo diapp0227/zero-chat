@@ -251,7 +251,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('おかえりなさい'), findsOneWidget);
-      expect(find.text('パスワードを忘れた方'), findsOneWidget);
+      // パスワード再設定の画面ができるまでは非表示
+      expect(find.text('パスワードを忘れた方'), findsNothing);
 
       await tester.enterText(find.byType(TextField).at(0), 'a@example.com');
       await tester.enterText(find.byType(TextField).at(1), '123456');
