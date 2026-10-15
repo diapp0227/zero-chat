@@ -41,6 +41,10 @@ class AuthScreen extends ConsumerStatefulWidget {
   /// 認証コードの桁数
   static const verificationCodeLength = 6;
 
+  /// サインインのときに「パスワードを忘れた方」を表示するか。
+  /// パスワード再設定の画面ができるまでは非表示
+  static const showForgotPassword = false;
+
   @override
   ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
@@ -411,7 +415,7 @@ class _AuthForm extends StatelessWidget {
               obscureText: true,
               onSubmitted: onSubmit,
             ),
-            if (mode == AuthMode.signIn) ...[
+            if (mode == AuthMode.signIn && AuthScreen.showForgotPassword) ...[
               const SizedBox(height: 9),
               Align(
                 alignment: Alignment.centerRight,
