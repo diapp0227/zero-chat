@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zero_chat/app.dart';
+import 'package:zero_chat/data/repositories/auth/auth_repository_provider.dart';
+import 'package:zero_chat/data/repositories/auth/fake_auth_repository.dart';
 import 'package:zero_chat/ui/auth/auth_screen.dart';
 import 'package:zero_chat/ui/auth/auth_session.dart';
 import 'package:zero_chat/ui/auth/widgets/auth_buttons.dart';
@@ -239,7 +241,18 @@ void main() {
     testWidgets('サインインするとホームへ進み、ログアウトで戻る', (WidgetTester tester) async {
       setScreenSize(tester, const Size(1200, 800));
 
-      await tester.pumpWidget(const ProviderScope(child: App()));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(
+              FakeAuthRepository(
+                confirmedAccounts: {'a@example.com': 'Passw0rd!'},
+              ),
+            ),
+          ],
+          child: const App(),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.text('WORKPLACE SOCIAL'), findsOneWidget);
 
@@ -255,7 +268,15 @@ void main() {
       expect(find.text('パスワードを忘れた方'), findsNothing);
 
       await tester.enterText(find.byType(TextField).at(0), 'a@example.com');
-      await tester.enterText(find.byType(TextField).at(1), '123456');
+      await tester.enterText(find.byType(TextField).at(1), 'wrong');
+      await tester.pump();
+      await tester.tap(find.byType(AuthSubmitButton));
+      await tester.pumpAndSettle();
+      // パスワードが違えば、エラーを出してサインイン画面のまま
+      expect(find.text('メールアドレスまたはパスワードが正しくありません'), findsOneWidget);
+      expect(find.byType(AuthScreen), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).at(1), 'Passw0rd!');
       await tester.pump();
       await tester.tap(find.byType(AuthSubmitButton));
       await tester.pumpAndSettle();
