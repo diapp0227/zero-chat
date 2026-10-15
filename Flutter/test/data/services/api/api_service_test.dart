@@ -62,7 +62,7 @@ void main() {
       expect(json, {'text': '日報の本文'});
     });
 
-    test('200 以外なら ApiException を投げる', () async {
+    test('2xx 以外なら ApiException を投げる', () async {
       final client = MockClient(
         (_) async => jsonResponse({'message': 'unknown category: foo'}, 400),
       );
@@ -73,6 +73,48 @@ void main() {
           isA<ApiException>()
               .having((e) => e.statusCode, 'statusCode', 400)
               .having((e) => e.body, 'body', contains('unknown category')),
+        ),
+      );
+    });
+
+    test('本文を JSON にして POST し、201 のレスポンスの JSON を返す', () async {
+      http.Request? requested;
+      final client = MockClient((request) async {
+        requested = request;
+        return jsonResponse({
+          'post': {'id': 11},
+        }, 201);
+      });
+
+      final json = await HttpApiService(
+        baseUrl: baseUrl,
+        client: client,
+      ).postJson('/posts', body: {'text': '日報の本文'});
+
+      expect(requested!.method, 'POST');
+      expect(requested!.url, Uri.parse('https://example.com/posts'));
+      expect(
+        requested!.headers['Content-Type'],
+        startsWith('application/json'),
+      );
+      expect(jsonDecode(requested!.body), {'text': '日報の本文'});
+      expect(json, {
+        'post': {'id': 11},
+      });
+    });
+
+    test('POST で 2xx 以外なら ApiException を投げる', () async {
+      final client = MockClient(
+        (_) async => jsonResponse({'message': 'text is required'}, 400),
+      );
+
+      expect(
+        HttpApiService(
+          baseUrl: baseUrl,
+          client: client,
+        ).postJson('/posts', body: {'text': ''}),
+        throwsA(
+          isA<ApiException>().having((e) => e.statusCode, 'statusCode', 400),
         ),
       );
     });

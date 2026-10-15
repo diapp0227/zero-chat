@@ -17,11 +17,16 @@ abstract class ApiService {
   /// [path] に GET でリクエストし、レスポンスの JSON を返す
   ///
   /// [query] はクエリパラメータ (なければ null)。
-  /// ステータスコードが 200 以外なら [ApiException] を投げる
+  /// ステータスコードが 2xx 以外なら [ApiException] を投げる
   Future<Object?> getJson(String path, {Map<String, String>? query});
+
+  /// [path] に [body] を JSON にして POST でリクエストし、レスポンスの JSON を返す
+  ///
+  /// ステータスコードが 2xx (作成成功の 201 など) 以外なら [ApiException] を投げる
+  Future<Object?> postJson(String path, {required Object? body});
 }
 
-/// サーバーが 200 以外のステータスコードを返したときのエラー
+/// サーバーが 2xx 以外のステータスコードを返したときのエラー
 class ApiException implements Exception {
   const ApiException(this.statusCode, this.body);
 
@@ -52,10 +57,26 @@ class HttpApiService implements ApiService {
   Future<Object?> getJson(String path, {Map<String, String>? query}) async {
     final uri = Uri.parse('$baseUrl$path').replace(queryParameters: query);
     final response = await _client.get(uri).timeout(_timeout);
+    return _decode(response);
+  }
 
+  @override
+  Future<Object?> postJson(String path, {required Object? body}) async {
+    final response = await _client
+        .post(
+          Uri.parse('$baseUrl$path'),
+          headers: {'Content-Type': 'application/json; charset=utf-8'},
+          body: jsonEncode(body),
+        )
+        .timeout(_timeout);
+    return _decode(response);
+  }
+
+  /// レスポンスの本文を JSON として読む。2xx 以外なら [ApiException] を投げる
+  Object? _decode(http.Response response) {
     // 日本語を正しく読むため、bodyBytes を UTF-8 として読む
     final body = utf8.decode(response.bodyBytes);
-    if (response.statusCode != 200) {
+    if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ApiException(response.statusCode, body);
     }
     return jsonDecode(body);
