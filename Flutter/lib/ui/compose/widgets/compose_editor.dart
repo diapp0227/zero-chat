@@ -7,6 +7,8 @@ import '../../core/app_icon.dart';
 import '../../core/avatar.dart';
 import '../../core/sheet_header.dart';
 import '../../profile/current_profile.dart';
+import '../../profile/profile_settings_screen.dart';
+import '../compose_view_model.dart';
 
 /// 投稿画面の2ステップ目。選んだ種類の投稿の本文を入力する
 class ComposeEditor extends ConsumerStatefulWidget {
@@ -50,15 +52,23 @@ class _ComposeEditorState extends ConsumerState<ComposeEditor> {
     super.dispose();
   }
 
-  void _onSubmit() {
-    // 投稿の送信は次の段階で実装する
+  Future<void> _onSubmit() async {
+    final succeeded = await ref
+        .read(composeViewModelProvider.notifier)
+        .submit(category: widget.category, text: _controller.text.trim());
+    // 成功したら投稿画面を閉じる (失敗したら画面に残してメッセージを出す)
+    if (succeeded && mounted) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final fullScreen = widget.fullScreen;
-    final canSubmit = _controller.text.trim().isNotEmpty;
     final profile = ref.watch(currentProfileProvider);
+    final submission = ref.watch(composeViewModelProvider);
+    final sending = submission.isLoading;
+    // サーバーが名前を必須にしているので、ユーザー名が未設定なら投稿できない
+    final hasName = profile.name.isNotEmpty;
+    final canSubmit = _controller.text.trim().isNotEmpty && hasName && !sending;
 
     final content = Padding(
       padding: fullScreen
@@ -79,6 +89,8 @@ class _ComposeEditorState extends ConsumerState<ComposeEditor> {
               child: TextField(
                 controller: _controller,
                 autofocus: true,
+                // 送信中は本文を変えられないようにする
+                readOnly: sending,
                 maxLength: ComposeEditor.maxLength,
                 maxLines: null,
                 expands: fullScreen,
@@ -113,10 +125,24 @@ class _ComposeEditorState extends ConsumerState<ComposeEditor> {
           leadingLabel: '戻る',
           onLeadingPressed: widget.onBack,
           trailing: SheetPrimaryButton(
-            label: '投稿する',
+            label: sending ? '投稿中…' : '投稿する',
             onPressed: canSubmit ? _onSubmit : null,
           ),
         ),
+        if (!hasName)
+          _ComposeNotice(
+            message: '投稿するには、プロフィールのユーザー名を設定してください',
+            foregroundColor: AppColors.composeNoticeText,
+            backgroundColor: AppColors.composeNoticeBackground,
+            actionLabel: '設定する',
+            onAction: () => showProfileSettingsScreen(context),
+          )
+        else if (submission.hasError)
+          const _ComposeNotice(
+            message: '投稿できませんでした。時間をおいて、もう一度お試しください',
+            foregroundColor: AppColors.composeErrorText,
+            backgroundColor: AppColors.composeErrorBackground,
+          ),
         if (fullScreen)
           Expanded(child: content)
         else
@@ -129,6 +155,73 @@ class _ComposeEditorState extends ConsumerState<ComposeEditor> {
           horizontalPadding: fullScreen ? 18 : 20,
         ),
       ],
+    );
+  }
+}
+
+/// 見出しの下に出すお知らせ (ユーザー名が未設定・送信に失敗したとき)
+///
+/// [actionLabel] と [onAction] を渡すと、右端にボタンを出す
+class _ComposeNotice extends StatelessWidget {
+  const _ComposeNotice({
+    required this.message,
+    required this.foregroundColor,
+    required this.backgroundColor,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  /// お知らせの文
+  final String message;
+
+  /// 文とボタンの色
+  final Color foregroundColor;
+
+  /// 背景の色
+  final Color backgroundColor;
+
+  /// 右端のボタンの文字 (なければボタンを出さない)
+  final String? actionLabel;
+
+  /// 右端のボタンが押されたときの処理
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final actionLabel = this.actionLabel;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        spacing: 10,
+        children: [
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: foregroundColor, fontSize: 11),
+            ),
+          ),
+          if (actionLabel != null)
+            TextButton(
+              onPressed: onAction,
+              style: ButtonStyle(
+                padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+                minimumSize: const WidgetStatePropertyAll(Size.zero),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                foregroundColor: WidgetStatePropertyAll(foregroundColor),
+                overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+                textStyle: const WidgetStatePropertyAll(
+                  TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                ),
+              ),
+              child: Text(actionLabel),
+            ),
+        ],
+      ),
     );
   }
 }
