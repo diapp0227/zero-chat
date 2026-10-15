@@ -18,6 +18,7 @@ DynamoDB (zero-chat-posts)
 
 - テーブルの項目・インデックスの定義: [posts-table.md](posts-table.md)
 - Lambda 関数のリクエスト・レスポンスとコード: [get-posts-lambda.md](get-posts-lambda.md)
+- 投稿作成 API (`POST /posts`) の作成手順: [create-post-api-aws.md](create-post-api-aws.md)
 - アカウント ID・API の URL などの実際の値: [aws-resources.md](../private/aws-resources.md)
 
 ## 作成したリソース
@@ -235,13 +236,13 @@ curl -i "https://<API ID>.execute-api.ap-northeast-1.amazonaws.com/posts?categor
 
 ```
 zero-chat-api
-├─ GET  /posts               → zero-chat-get-posts     (今回)
-├─ POST /posts               → zero-chat-create-post   (例: 投稿する)
+├─ GET  /posts               → zero-chat-get-posts     (この手順)
+├─ POST /posts               → zero-chat-create-post   (作成済み: create-post-api-aws.md)
 └─ POST /posts/{id}/replies  → zero-chat-create-reply  (例: 返信する)
 ```
 
 1. Lambda を作り、その処理に必要な権限だけをロールに付ける
-   (例: 投稿の作成なら、テーブル本体 `table/zero-chat-posts` への `dynamodb:PutItem`)
+   (例: 投稿の作成なら、テーブル本体 `table/zero-chat-posts` への `dynamodb:UpdateItem` と `dynamodb:PutItem`)
 2. **API Gateway → `zero-chat-api` → ルート → 作成** でメソッドとパスを決める
 3. 作ったルートを選び「統合をアタッチ」で 1 の Lambda をつなぐ
 4. 自動デプロイなので、同じ URL ですぐ呼べる
