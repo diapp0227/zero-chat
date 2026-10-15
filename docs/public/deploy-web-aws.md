@@ -170,10 +170,14 @@ aws s3api put-bucket-policy --bucket "$BUCKET" --policy "{
 
 ```bash
 cd Flutter
-flutter build web --release
+flutter build web --release --dart-define-from-file=config/api.json
 aws s3 sync build/web "s3://$BUCKET" --delete --cache-control "no-cache"
 ```
 
+- `--dart-define-from-file=config/api.json`: API の URL と Cognito の ID (ユーザープール ID・アプリケーションクライアント ID) をアプリに埋め込む。
+  付け忘れると、Cognito の代わりに仮の認証で動き、API にトークンが付かないので投稿を読めない (401)。
+  `config/api.json` の作り方は [cognito-auth-aws.md](cognito-auth-aws.md) の「5-1. 設定を渡す」を参照
+- 埋め込む値はどれも秘密の値ではない (ブラウザに配信され、誰でも見られる)。秘密の値は `config/api.json` に書かない
 - `--delete`: ビルドで消えたファイルを S3 からも消す
 - `--cache-control "no-cache"`: Flutter の Web ビルドは `main.dart.js` などのファイル名にハッシュが付かない。
   長くキャッシュさせると、更新後も古いファイルが使われることがあるので、全ファイルを `no-cache` にしている。
@@ -195,12 +199,15 @@ curl -sS -o /dev/null -w "%{http_code}\n" "https://$BUCKET.s3.$AWS_REGION.amazon
 
 ```bash
 cd Flutter
-flutter build web --release
+flutter build web --release --dart-define-from-file=config/api.json
 aws s3 sync build/web "s3://$BUCKET" --delete --cache-control "no-cache"
 aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/*"
 ```
 
 最後の invalidation で、CloudFront のエッジに残っている古いキャッシュを消す。
+
+- 前に一度でも開いたブラウザでは、Flutter のサービスワーカーが保存した古い版が表示されることがある。
+  ページを 1〜2 回読み込み直すと新しい版に切り替わる (変わらなければスーパーリロード: Mac は `Cmd + Shift + R`)
 
 ## 削除するとき
 
@@ -241,5 +248,7 @@ aws s3api delete-bucket --bucket "$BUCKET"
 
 ### 公開範囲
 
-CloudFront の URL を知っていれば誰でも見られる。ログイン機能などを入れるまでは、
-公開されて困るデータを Web 版に含めないこと。
+CloudFront の URL を知っていれば、誰でもサインイン画面までは見られ、アカウントも作れる
+(Cognito のセルフサインアップが有効なため)。投稿の読み書きはサインインした人だけ
+([api-jwt-auth-aws.md](api-jwt-auth-aws.md))。
+アプリの JavaScript には API の URL と Cognito の ID が入るが、どれも秘密の値ではない。
