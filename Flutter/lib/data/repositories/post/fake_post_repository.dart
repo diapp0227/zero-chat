@@ -18,18 +18,53 @@ const _cat = Author(id: 9, name: 'ねこ', role: 'エンジニア');
 /// 仮の投稿データを返す PostRepository (デザインのモック投稿と同じ内容)
 ///
 /// サーバーとの通信を作るまでの代わり。
-/// 投稿・返信日時は、このクラスを作った時刻からさかのぼった日時にしている
+/// 投稿・返信日時は、このクラスを作った時刻からさかのぼった日時にしている。
+/// createPost で作った投稿はメモリ上にだけ持ち、アプリを閉じると消える
 class FakePostRepository implements PostRepository {
   /// 投稿・返信日時の基準にする時刻
   final DateTime _createdAt = DateTime.now();
 
+  // createPost で作った投稿
+  final List<Post> _createdPosts = [];
+
   @override
   Future<List<Post>> fetchPosts({PostCategory? category}) async {
-    final posts = _posts()
-        .where((post) => category == null || post.category == category)
-        .toList();
+    final posts = [
+      ..._posts(),
+      ..._createdPosts,
+    ].where((post) => category == null || post.category == category).toList();
     posts.sort((a, b) => b.postedAt.compareTo(a.postedAt));
     return posts;
+  }
+
+  @override
+  Future<Post> createPost({
+    required PostCategory category,
+    required String text,
+    required String authorName,
+    required String authorRole,
+  }) async {
+    final post = Post(
+      id: _nextId(),
+      // サーバーと同じく、ログインの仕組みができるまでは投稿した人の番号を 0 にする
+      author: Author(id: 0, name: authorName, role: authorRole),
+      category: category,
+      text: text,
+      postedAt: DateTime.now(),
+    );
+    _createdPosts.add(post);
+    return post;
+  }
+
+  /// まだ使われていない番号 (投稿・返信の番号の最大値 + 1)
+  int _nextId() {
+    final ids = [
+      for (final post in [..._posts(), ..._createdPosts]) ...[
+        post.id,
+        for (final reply in post.replies) reply.id,
+      ],
+    ];
+    return ids.reduce((a, b) => a > b ? a : b) + 1;
   }
 
   /// 基準の時刻から [duration] だけ前の日時

@@ -8,7 +8,7 @@ import 'package:zero_chat/domain/models/post_category.dart';
 class _TestApiService implements ApiService {
   _TestApiService(this.response);
 
-  /// getJson で返す JSON
+  /// getJson・postJson で返す JSON
   final Object? response;
 
   /// getJson に渡されたパス
@@ -21,6 +21,19 @@ class _TestApiService implements ApiService {
   Future<Object?> getJson(String path, {Map<String, String>? query}) async {
     requestedPath = path;
     requestedQuery = query;
+    return response;
+  }
+
+  /// postJson に渡されたパス
+  String? postedPath;
+
+  /// postJson に渡された本文
+  Object? postedBody;
+
+  @override
+  Future<Object?> postJson(String path, {required Object? body}) async {
+    postedPath = path;
+    postedBody = body;
     return response;
   }
 }
@@ -119,6 +132,60 @@ void main() {
       });
 
       expect(HttpPostRepository(api).fetchPosts(), throwsArgumentError);
+    });
+
+    test('投稿を作成するとき、種類・本文・名前・役職を /posts に POST する', () async {
+      final api = _TestApiService({
+        'post': {
+          'id': 11,
+          'author': {'id': 0, 'name': 'やまもと', 'role': 'デザイナー'},
+          'category': 'selfStudy',
+          'text': '自己学習の本文',
+          'postedAt': '2026-10-15T09:00:00Z',
+          'replies': <Object>[],
+        },
+      });
+
+      await HttpPostRepository(api).createPost(
+        category: PostCategory.selfStudy,
+        text: '自己学習の本文',
+        authorName: 'やまもと',
+        authorRole: 'デザイナー',
+      );
+
+      expect(api.postedPath, '/posts');
+      expect(api.postedBody, {
+        'category': 'selfStudy',
+        'text': '自己学習の本文',
+        'author': {'name': 'やまもと', 'role': 'デザイナー'},
+      });
+    });
+
+    test('作成した投稿として、サーバーが返した投稿を返す', () async {
+      final api = _TestApiService({
+        'post': {
+          'id': 11,
+          'author': {'id': 0, 'name': 'やまもと', 'role': 'デザイナー'},
+          'category': 'selfStudy',
+          'text': '自己学習の本文',
+          'postedAt': '2026-10-15T09:00:00Z',
+          'replies': <Object>[],
+        },
+      });
+
+      final post = await HttpPostRepository(api).createPost(
+        category: PostCategory.selfStudy,
+        text: '自己学習の本文',
+        authorName: 'やまもと',
+        authorRole: 'デザイナー',
+      );
+
+      // 番号と投稿日時はサーバーが付けたもの
+      expect(post.id, 11);
+      expect(post.postedAt, DateTime.utc(2026, 10, 15, 9).toLocal());
+      expect(post.author.name, 'やまもと');
+      expect(post.category, PostCategory.selfStudy);
+      expect(post.replies, isEmpty);
     });
   });
 }

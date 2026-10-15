@@ -28,6 +28,14 @@ class _TestPostRepository implements PostRepository {
         .where((post) => category == null || post.category == category)
         .toList();
   }
+
+  @override
+  Future<Post> createPost({
+    required PostCategory category,
+    required String text,
+    required String authorName,
+    required String authorRole,
+  }) => throw UnimplementedError();
 }
 
 void main() {

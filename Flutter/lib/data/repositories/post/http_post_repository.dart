@@ -5,10 +5,11 @@ import '../../../domain/models/reply.dart';
 import '../../services/api/api_service.dart';
 import 'post_repository.dart';
 
-/// サーバーの投稿取得 API (GET /posts) から投稿を取得する PostRepository
+/// サーバーの API で投稿を取得 (GET /posts)・作成 (POST /posts) する PostRepository
 ///
-/// API は新しい順に最大 10 件を返す。
-/// レスポンスの形は docs/public/get-posts-lambda.md を参照
+/// 取得の API は新しい順に最大 10 件を返す。
+/// レスポンスの形は docs/public/get-posts-lambda.md、
+/// 作成の API の処理は Lambda/zero-chat-create-post/lambda_function.py を参照
 class HttpPostRepository implements PostRepository {
   HttpPostRepository(this._apiService);
 
@@ -23,6 +24,28 @@ class HttpPostRepository implements PostRepository {
     );
     final posts = (json as Map<String, dynamic>)['posts'] as List<dynamic>;
     return posts.map((post) => _toPost(post as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<Post> createPost({
+    required PostCategory category,
+    required String text,
+    required String authorName,
+    required String authorRole,
+  }) async {
+    final json = await _apiService.postJson(
+      '/posts',
+      body: {
+        // 種類は enum の名前 (例: dailyReport) で渡す
+        'category': category.name,
+        'text': text,
+        'author': {'name': authorName, 'role': authorRole},
+      },
+    );
+    // サーバーが番号と投稿日時を付けた投稿が返ってくる
+    return _toPost(
+      (json as Map<String, dynamic>)['post'] as Map<String, dynamic>,
+    );
   }
 
   Post _toPost(Map<String, dynamic> json) => Post(

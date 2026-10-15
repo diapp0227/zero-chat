@@ -43,5 +43,64 @@ void main() {
 
       expect(ids.toSet().length, ids.length);
     });
+
+    test('作成した投稿は、一覧の先頭に出る', () async {
+      final repository = FakePostRepository();
+
+      final created = await repository.createPost(
+        category: PostCategory.announcement,
+        text: 'お知らせの本文',
+        authorName: 'やまもと',
+        authorRole: 'デザイナー',
+      );
+      final posts = await repository.fetchPosts();
+
+      expect(posts.first.id, created.id);
+      expect(created.text, 'お知らせの本文');
+      expect(created.author.name, 'やまもと');
+      expect(created.author.role, 'デザイナー');
+    });
+
+    test('作成した投稿は、その種類で絞り込んだ一覧にだけ出る', () async {
+      final repository = FakePostRepository();
+
+      final created = await repository.createPost(
+        category: PostCategory.announcement,
+        text: 'お知らせの本文',
+        authorName: 'やまもと',
+        authorRole: 'デザイナー',
+      );
+
+      final announcements = await repository.fetchPosts(
+        category: PostCategory.announcement,
+      );
+      final dailyReports = await repository.fetchPosts(
+        category: PostCategory.dailyReport,
+      );
+      expect(announcements.map((post) => post.id), contains(created.id));
+      expect(dailyReports.map((post) => post.id), isNot(contains(created.id)));
+    });
+
+    test('作成した投稿にも、ほかと重ならない番号が付く', () async {
+      final repository = FakePostRepository();
+
+      for (var i = 0; i < 3; i++) {
+        await repository.createPost(
+          category: PostCategory.dailyReport,
+          text: '日報 $i',
+          authorName: 'やまもと',
+          authorRole: 'エンジニア',
+        );
+      }
+      final posts = await repository.fetchPosts();
+      final ids = [
+        for (final post in posts) ...[
+          post.id,
+          for (final reply in post.replies) reply.id,
+        ],
+      ];
+
+      expect(ids.toSet().length, ids.length);
+    });
   });
 }
