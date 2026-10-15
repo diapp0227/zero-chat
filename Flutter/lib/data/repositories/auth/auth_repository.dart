@@ -27,6 +27,11 @@ abstract class AuthRepository {
 
   /// サインアウトする (端末に残っているサインインの情報を消す)
   Future<void> signOut();
+
+  /// API に付けるアクセストークン (JWT)。サインインしていなければ null
+  ///
+  /// 有効期限が切れていれば、自動で新しいものに取り替えてから返す
+  Future<String?> accessToken();
 }
 
 /// サインインの結果
