@@ -105,6 +105,13 @@ class CognitoAuthRepository implements AuthRepository {
     }
   });
 
+  @override
+  Future<String?> accessToken() => _guard(() async {
+    final session = await Amplify.Auth.fetchAuthSession();
+    if (session is! CognitoAuthSession || !session.isSignedIn) return null;
+    return session.userPoolTokensResult.valueOrNull?.accessToken.raw;
+  });
+
   /// [action] を実行し、Amplify の例外を [AuthFailure] に変換する
   static Future<T> _guard<T>(Future<T> Function() action) async {
     try {
