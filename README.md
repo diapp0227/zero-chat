@@ -42,16 +42,12 @@ flowchart LR
 
     subgraph AWS
         CF[CloudFront] --> S3[(S3<br/>Web 版のファイル)]
-        APIGW["API Gateway"]
-        APIGW -->|GET /posts| GetLambda["Lambda<br/>投稿の取得"]
-        APIGW -->|POST /posts| CreateLambda["Lambda<br/>投稿の作成"]
-        GetLambda --> DDB[(DynamoDB)]
-        CreateLambda --> DDB
+        APIGW["API Gateway<br/>GET /posts"] --> Lambda[Lambda] --> DDB[(DynamoDB)]
     end
 
     Browser -->|画面のファイルを取得| CF
-    Browser -->|投稿を取得・作成| APIGW
-    Mobile -->|投稿を取得・作成| APIGW
+    Browser -->|投稿を取得| APIGW
+    Mobile -->|投稿を取得| APIGW
 ```
 
 アプリの内部は、Flutter 公式が推奨する MVVM + レイヤードアーキテクチャ (UI / Domain / Data) で作っている。
