@@ -21,24 +21,10 @@ import 'widgets/auth_text_field.dart';
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
-  /// パスワードの最小文字数 (Cognito のパスワードポリシーと合わせる)
-  static const minPasswordLength = 8;
-
-  /// パスワードの条件の説明 (サインアップのとき入力欄の下に出す)
-  static const passwordRequirement = '大文字・小文字・数字・記号をそれぞれ1文字以上含めてください';
-
-  /// パスワードが Cognito の初期設定のパスワードポリシーを満たすか
+  /// パスワードの最小文字数 (入力欄のヒントに出す。Cognito のパスワードポリシーと合わせる)
   ///
-  /// 8 文字以上で、大文字・小文字・数字・記号 (Cognito が記号と認める文字) をそれぞれ含む
-  static bool isValidPassword(String password) {
-    return password.length >= minPasswordLength &&
-        RegExp('[A-Z]').hasMatch(password) &&
-        RegExp('[a-z]').hasMatch(password) &&
-        RegExp('[0-9]').hasMatch(password) &&
-        RegExp(
-          r'''[\^$*.\[\]{}()?"!@#%&/\\,><':;|_~`=+\-]''',
-        ).hasMatch(password);
-  }
+  /// アプリでは文字数を確かめず、条件を満たすかの判定は Cognito に任せる
+  static const minPasswordLength = 8;
 
   /// 認証コードの桁数
   static const verificationCodeLength = 6;
@@ -87,13 +73,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       return _codeController.text.length == AuthScreen.verificationCodeLength;
     }
     final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    // サインインでは条件を満たすかの判定は Cognito に任せ、空でなければ送る
-    final passwordOk = switch (_mode) {
-      AuthMode.signUp => AuthScreen.isValidPassword(password),
-      AuthMode.signIn => password.isNotEmpty,
-    };
-    return RegExp(r'^[^@\s]+@[^@\s]+$').hasMatch(email) && passwordOk;
+    // パスワードが条件を満たすかの判定は Cognito に任せ、空でなければ送る
+    return RegExp(r'^[^@\s]+@[^@\s]+$').hasMatch(email) &&
+        _passwordController.text.isNotEmpty;
   }
 
   /// 一番下のボタンが押されたとき。サインインできたら router がホームへ移す
@@ -466,9 +448,6 @@ class _AuthForm extends StatelessWidget {
               controller: passwordController,
               prefix: AuthFieldPrefix.password,
               hintText: '${AuthScreen.minPasswordLength}文字以上で入力',
-              helperText: mode == AuthMode.signUp
-                  ? AuthScreen.passwordRequirement
-                  : null,
               obscureText: true,
               onSubmitted: onSubmit,
             ),
