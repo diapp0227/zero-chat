@@ -11,6 +11,9 @@ Flutter によるマルチプラットフォーム開発と AWS サーバーレ�
 
 ### できること
 
+- メールアドレスとパスワードでサインアップ (メールで届く 6 桁の確認コードで確認) ・サインインする。
+  前回のサインインは、次にアプリを開いたときも残る
+- 投稿の読み書きはサインインした人だけができる (API がトークンを確かめる)
 - タイムラインで投稿を新しい順に表示する (1 回の読み込みで最新 10 件)
 - 投稿の種類で絞り込む (最新 / お知らせ / 日報 / 自己学習)
 - 投稿への返信を、投稿の下に開いたり閉じたりして表示する
@@ -21,13 +24,24 @@ Flutter によるマルチプラットフォーム開発と AWS サーバーレ�
 
 ### 技術スタック
 
+#### アプリ (Flutter)
+
 | 領域 | 使っているもの |
 |---|---|
-| アプリ | Flutter / Dart |
+| 言語・フレームワーク | Flutter / Dart |
 | 状態管理・DI | Riverpod 3 (`flutter_riverpod`) |
-| 画面遷移 | go_router |
-| 通信 | HTTPS (`http` パッケージ) |
-| API | Amazon API Gateway (HTTP API) + AWS Lambda (Python 3.13) |
+| 画面遷移 | `go_router` |
+| API との通信 | `http` (HTTPS) |
+| 認証 (Cognito とのやり取り) | Amplify Flutter (`amplify_flutter`・`amplify_auth_cognito`) |
+| アイコン・ロゴの表示 | `flutter_svg` |
+
+#### サーバー (AWS)
+
+| 領域 | 使っているサービス |
+|---|---|
+| 認証 | Amazon Cognito (ユーザープール) |
+| API | Amazon API Gateway (HTTP API・JWT オーソライザー) |
+| API の処理 | AWS Lambda (Python 3.13) |
 | データベース | Amazon DynamoDB |
 | Web 版の配信 | Amazon S3 + Amazon CloudFront |
 
@@ -42,12 +56,16 @@ flowchart LR
 
     subgraph AWS
         CF[CloudFront] --> S3[(S3<br/>Web 版のファイル)]
-        APIGW["API Gateway<br/>GET /posts"] --> Lambda[Lambda] --> DDB[(DynamoDB)]
+        APIGW["API Gateway<br/>GET /posts・POST /posts"] --> Lambda[Lambda] --> DDB[(DynamoDB)]
+        Cognito[Cognito<br/>ユーザープール]
+        APIGW -.->|トークンを確認| Cognito
     end
 
     Browser -->|画面のファイルを取得| CF
-    Browser -->|投稿を取得| APIGW
-    Mobile -->|投稿を取得| APIGW
+    Browser -->|投稿の取得・作成| APIGW
+    Mobile -->|投稿の取得・作成| APIGW
+    Browser -->|サインイン| Cognito
+    Mobile -->|サインイン| Cognito
 ```
 
 アプリの内部は、Flutter 公式が推奨する MVVM + レイヤードアーキテクチャ (UI / Domain / Data) で作っている。
@@ -59,12 +77,13 @@ flowchart LR
 zero-chat/
 ├── Flutter/                         # Flutter アプリ
 │   ├── lib/
-│   │   ├── main.dart                # 起動処理 (ProviderScope でアプリ全体を包む)
+│   │   ├── main.dart                # 起動処理 (Amplify の準備・前回のサインインの確認・ProviderScope)
 │   │   ├── app.dart                 # MaterialApp.router
 │   │   ├── routing/                 # 画面遷移 (go_router)
 │   │   ├── ui/                      # UI layer (画面ごと)
 │   │   │   ├── core/                #   共通の Widget・テーマ・色
 │   │   │   ├── shell/               #   タブバー・上部バーなど画面の外枠
+│   │   │   ├── auth/                #   サインアップ・サインイン画面と ViewModel・サインイン状態
 │   │   │   ├── home/                #   ホーム (タイムライン) 画面と ViewModel
 │   │   │   ├── compose/             #   投稿画面と ViewModel
 │   │   │   ├── profile/             #   プロフィール設定画面
@@ -73,11 +92,12 @@ zero-chat/
 │   │   │   └── models/              # Domain layer (投稿・返信・投稿者などのモデル)
 │   │   └── data/                    # Data layer
 │   │       ├── repositories/post/   #   投稿の取得・作成 (サーバー版 / 仮データ版)
+│   │       ├── repositories/auth/   #   サインアップ・サインイン (Cognito 版 / 仮の認証版)
 │   │       └── services/api/        #   サーバーとの通信
 │   ├── test/                        # テスト (lib/ と同じ構成)
 │   ├── assets/                      # アイコン・ロゴの SVG
 │   ├── config/
-│   │   └── api.example.json         # API の URL を書く設定ファイルのひな形
+│   │   └── api.example.json         # API の URL と Cognito の ID を書く設定ファイルのひな形
 │   ├── android/ ios/ web/           # 各プラットフォーム固有の設定
 │   └── macos/ windows/ linux/
 ├── Lambda/                          # AWS Lambda 関数のコード
@@ -102,13 +122,15 @@ Dart SDK の条件は `pubspec.yaml` で `^3.9.0` にしている。
 
 | プラットフォーム | 最低バージョン | 動作確認 |
 |---|---|---|
-| iOS | 13.0 | ✅ iPhone 17 Pro シミュレーター |
+| iOS | 13.0 | ✅ iPhone 17 Pro シミュレーター (Cognito でのサインインまで確認) |
 | Android | 7.0 (API 24) | - |
-| Web | Chrome などのモダンブラウザ | ✅ Chrome |
-| macOS | 10.15 | - |
+| Web | Chrome などのモダンブラウザ | ✅ Chrome (Cognito でのサインインまで確認) |
+| macOS | 10.15 | - (※) |
 | Windows / Linux | - | - |
 
-最低バージョンは Flutter のプロジェクト作成時の初期値のまま。
+最低バージョンは Flutter のプロジェクト作成時の初期値のまま。Amplify Flutter の条件 (iOS 13 以上・Android API 24 以上) も満たしている。
+
+※ macOS アプリでは、Amplify がトークンを保存するためのキーチェーンの設定 (Keychain Sharing) をしていないため、サインインは動かない見込み。
 
 ## ビルド手順
 
@@ -127,8 +149,11 @@ flutter pub get
 
 #### 仮のデータで起動する
 
-サーバーがなくても、アプリに組み込んだ仮の投稿データで動かせる。
+サーバーがなくても、アプリに組み込んだ仮の投稿データと仮の認証で動かせる。
 投稿した内容はアプリの中 (メモリ) にだけ保存され、アプリを閉じると消える。
+
+- 起動すると、まずサインイン画面が出る。サインアップすると確認コードの入力に進むので、`123456` を入れる
+- 仮の認証で作ったアカウントもアプリを閉じると消えるので、起動するたびにサインアップし直す
 
 ```bash
 flutter run
@@ -136,11 +161,14 @@ flutter run
 
 #### サーバーにつないで起動する
 
-API の URL は `config/api.json` に書き、ビルド時に渡す。
+API の URL と Cognito の ID は `config/api.json` に書き、ビルド時に渡す。
 このファイルは公開しないよう git の管理対象外にしている。
 
 1. `config/api.example.json` をコピーして `config/api.json` を作る
-2. `<API ID>` を実際の値にする (URL の末尾に `/` は付けない)
+2. 次の 3 つを実際の値にする
+   - `API_BASE_URL`: API の URL (`<API ID>` を置き換える。末尾に `/` は付けない)
+   - `COGNITO_USER_POOL_ID`: Cognito のユーザープール ID
+   - `COGNITO_CLIENT_ID`: Cognito のアプリケーションクライアント ID
 3. `--dart-define-from-file` を付けて起動する
 
 ```bash
@@ -154,10 +182,19 @@ Web 版をローカルで動かすときは、API の CORS 設定で許可して
 flutter run -d chrome --web-port 8080 --dart-define-from-file=config/api.json
 ```
 
-※ `--dart-define` の値はアプリに埋め込まれるため、秘密の情報は渡さない。
+※ `--dart-define` の値はアプリに埋め込まれるため、秘密の情報は渡さない (API の URL と Cognito の ID は秘密の値ではない)。
 
-※ API 自体の作り方は、投稿の取得は [posts-api-aws.md](docs/public/posts-api-aws.md)、
-投稿の作成は [create-post-api-aws.md](docs/public/create-post-api-aws.md) を参照。
+※ API はサインインした人のトークンがないと 401 を返す。API の URL だけ渡して Cognito の ID を渡さないと、
+仮の認証で動いてトークンが付かないため、投稿を読めない。
+
+※ AWS 側の作り方は次を参照。
+
+| 内容 | 手順書 |
+|---|---|
+| 投稿の取得 API | [posts-api-aws.md](docs/public/posts-api-aws.md) |
+| 投稿の作成 API | [create-post-api-aws.md](docs/public/create-post-api-aws.md) |
+| サインアップ・サインイン (Cognito) | [cognito-auth-aws.md](docs/public/cognito-auth-aws.md) |
+| API の JWT 認証 | [api-jwt-auth-aws.md](docs/public/api-jwt-auth-aws.md) |
 
 ### 3. テストする
 
@@ -166,7 +203,7 @@ flutter test
 flutter analyze
 ```
 
-テストは通信しないので、API がなくても実行できる。
+テストは通信しないので、API や Cognito がなくても実行できる。
 
 ### 4. リリースビルド
 
