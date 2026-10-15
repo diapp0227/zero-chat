@@ -91,15 +91,14 @@ class _TextOnlyButton extends StatelessWidget {
   }
 }
 
-/// 見出しの右に置く、濃い背景のボタン (投稿する・保存)
+/// 見出しの右に置く、太字の文字だけのボタン (投稿する・保存)
 ///
-/// [onPressed] が null のときは押せない見た目になる
+/// [onPressed] が null のときは押せない見た目 (薄い文字) になる
 class SheetPrimaryButton extends StatelessWidget {
   const SheetPrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
-    this.horizontalPadding = 15,
   });
 
   /// ボタンの文字
@@ -108,24 +107,18 @@ class SheetPrimaryButton extends StatelessWidget {
   /// 押されたときの処理 (null なら押せない)
   final VoidCallback? onPressed;
 
-  /// 文字の左右の余白
-  final double horizontalPadding;
-
   @override
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onPressed,
       style: ButtonStyle(
-        padding: WidgetStatePropertyAll(
-          EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8),
+        // 左の「キャンセル」「戻る」と同じく、背景なしで端に揃える
+        padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(vertical: 8),
         ),
         minimumSize: const WidgetStatePropertyAll(Size.zero),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: WidgetStatePropertyAll(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-        foregroundColor: const WidgetStatePropertyAll(Colors.white),
-        backgroundColor: WidgetStateProperty.resolveWith(
+        foregroundColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.disabled)
               ? AppColors.sheetPrimaryDisabled
               : AppColors.compose,

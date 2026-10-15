@@ -82,7 +82,6 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
           onLeadingPressed: () => Navigator.of(context).pop(),
           trailing: SheetPrimaryButton(
             label: '保存',
-            horizontalPadding: 17,
             onPressed: canSave ? _save : null,
           ),
         ),

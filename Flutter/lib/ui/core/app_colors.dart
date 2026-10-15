@@ -130,8 +130,8 @@ abstract final class AppColors {
   /// 投稿画面・プロフィール設定画面：「キャンセル」「戻る」の文字
   static const sheetCancel = Color(0xFF77776F);
 
-  /// 投稿画面・プロフィール設定画面：押せない「投稿する」「保存」ボタンの背景
-  static const sheetPrimaryDisabled = Color(0xFFD5D5CB);
+  /// 投稿画面・プロフィール設定画面：押せない「投稿する」「保存」ボタンの文字
+  static const sheetPrimaryDisabled = Color(0xFFAAA99F);
 
   /// 入力欄のヒント・文字数 (プロフィール設定)、投稿の種類の右の ＞
   static const inputHint = Color(0xFFAAA99F);
