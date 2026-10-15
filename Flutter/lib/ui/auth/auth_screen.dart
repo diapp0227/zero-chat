@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/app_colors.dart';
 import '../core/app_logo.dart';
 import '../core/breakpoints.dart';
+import '../../data/repositories/auth/auth_repository.dart';
+import 'auth_failure_message.dart';
 import 'auth_mode.dart';
-import 'auth_session.dart';
+import 'auth_view_model.dart';
 import 'widgets/auth_brand_panel.dart';
 import 'widgets/auth_buttons.dart';
 import 'widgets/auth_mode_tabs.dart';
@@ -94,20 +96,56 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     return RegExp(r'^[^@\s]+@[^@\s]+$').hasMatch(email) && passwordOk;
   }
 
-  void _submit() {
-    if (!_canSubmit) return;
-    // TODO: サーバーでの認証 (Cognito など) ができたら、ここでメール送信・認証を呼ぶ
-    if (_mode == AuthMode.signUp && !_verificationPending) {
-      setState(() {
-        _verificationPending = true;
-        _codeController.clear();
-      });
+  /// 一番下のボタンが押されたとき。サインインできたら router がホームへ移す
+  Future<void> _submit() async {
+    final viewModel = ref.read(authViewModelProvider.notifier);
+    if (!_canSubmit || ref.read(authViewModelProvider).isLoading) return;
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (_verificationPending) {
+      await viewModel.confirmAndSignIn(
+        email: email,
+        password: password,
+        code: _codeController.text,
+      );
       return;
     }
-    ref.read(authSessionProvider.notifier).signIn();
+
+    final needsCode = switch (_mode) {
+      AuthMode.signUp => await viewModel.signUp(
+        email: email,
+        password: password,
+      ),
+      // 確認がまだのアカウントでサインインしたときも、確認コードの入力へ進む
+      AuthMode.signIn =>
+        await viewModel.signIn(email: email, password: password) ==
+            SignInOutcome.confirmationRequired,
+    };
+    if (needsCode && mounted) _showCodeStep();
+  }
+
+  void _showCodeStep() {
+    setState(() {
+      _verificationPending = true;
+      _codeController.clear();
+    });
+  }
+
+  Future<void> _resendCode() async {
+    final sent = await ref
+        .read(authViewModelProvider.notifier)
+        .resendCode(email: _emailController.text.trim());
+    if (sent && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('認証コードを再送しました')));
+    }
   }
 
   void _changeMode(AuthMode mode) {
+    ref.read(authViewModelProvider.notifier).clearError();
     setState(() {
       _mode = mode;
       _verificationPending = false;
@@ -118,6 +156,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
+    final submission = ref.watch(authViewModelProvider);
+    final failure = submission.error;
     final form = _AuthForm(
       mode: _mode,
       verificationPending: _verificationPending,
@@ -125,10 +165,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       emailController: _emailController,
       passwordController: _passwordController,
       codeController: _codeController,
-      canSubmit: _canSubmit,
+      canSubmit: _canSubmit && !submission.isLoading,
+      sending: submission.isLoading,
+      errorMessage: failure is AuthFailure ? failure.reason.message : null,
       onModeChanged: _changeMode,
       onSubmit: _submit,
-      onChangeEmail: () => setState(() => _verificationPending = false),
+      onResendCode: _resendCode,
+      onChangeEmail: () {
+        ref.read(authViewModelProvider.notifier).clearError();
+        setState(() => _verificationPending = false);
+      },
       headingSize: width <= 520 ? 23 : 25,
     );
 
@@ -278,8 +324,11 @@ class _AuthForm extends StatelessWidget {
     required this.passwordController,
     required this.codeController,
     required this.canSubmit,
+    required this.sending,
+    required this.errorMessage,
     required this.onModeChanged,
     required this.onSubmit,
+    required this.onResendCode,
     required this.onChangeEmail,
     required this.headingSize,
   });
@@ -305,11 +354,20 @@ class _AuthForm extends StatelessWidget {
   /// 一番下のボタンを押せるか
   final bool canSubmit;
 
+  /// 送信中か (ボタンの文字を「送信中…」にする)
+  final bool sending;
+
+  /// 送信に失敗したときにボタンの上に出すメッセージ (なければ null)
+  final String? errorMessage;
+
   /// 「サインアップ」「サインイン」が切り替えられたときの処理
   final ValueChanged<AuthMode> onModeChanged;
 
   /// 一番下のボタンが押されたときの処理
   final VoidCallback onSubmit;
+
+  /// 「コードを再送」が押されたときの処理
+  final VoidCallback onResendCode;
 
   /// 「メールアドレスを変更」が押されたときの処理
   final VoidCallback onChangeEmail;
@@ -388,8 +446,7 @@ class _AuthForm extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 AuthLinkButton(label: 'メールアドレスを変更', onPressed: onChangeEmail),
-                // TODO: サーバーでの認証ができたら、認証コードを送り直す
-                AuthLinkButton(label: 'コードを再送', onPressed: () {}),
+                AuthLinkButton(label: 'コードを再送', onPressed: onResendCode),
               ],
             ),
           ] else ...[
@@ -424,12 +481,47 @@ class _AuthForm extends StatelessWidget {
               ),
             ],
           ],
+          if (errorMessage case final message?) ...[
+            const SizedBox(height: 16),
+            _ErrorNotice(message: message),
+          ],
           const SizedBox(height: 20),
           AuthSubmitButton(
-            label: submitLabel,
+            label: sending ? '送信中…' : submitLabel,
             onPressed: canSubmit ? onSubmit : null,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 送信に失敗したときのメッセージ (投稿画面のエラーと同じ色)
+class _ErrorNotice extends StatelessWidget {
+  const _ErrorNotice({required this.message});
+
+  /// 表示するメッセージ
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: AppColors.composeErrorBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Semantics(
+        liveRegion: true,
+        child: Text(
+          message,
+          style: const TextStyle(
+            color: AppColors.composeErrorText,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            height: 1.6,
+          ),
+        ),
       ),
     );
   }
