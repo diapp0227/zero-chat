@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../../repositories/auth/auth_repository_provider.dart';
+
 /// サーバー (API Gateway) の URL。末尾の / は付けない
 ///
 /// ビルド時に `--dart-define-from-file=config/api.json` で渡す。
@@ -42,11 +44,16 @@ class ApiException implements Exception {
 
 /// http パッケージで通信する ApiService
 class HttpApiService implements ApiService {
-  HttpApiService({required this.baseUrl, http.Client? client})
+  HttpApiService({required this.baseUrl, this.accessToken, http.Client? client})
     : _client = client ?? http.Client();
 
   /// サーバーの URL
   final String baseUrl;
+
+  /// リクエストに付けるアクセストークン (JWT) を返す。null を返したら付けない
+  ///
+  /// API Gateway の JWT オーソライザーが、このトークンでサインイン済みかを確かめる
+  final Future<String?> Function()? accessToken;
 
   final http.Client _client;
 
@@ -56,7 +63,9 @@ class HttpApiService implements ApiService {
   @override
   Future<Object?> getJson(String path, {Map<String, String>? query}) async {
     final uri = Uri.parse('$baseUrl$path').replace(queryParameters: query);
-    final response = await _client.get(uri).timeout(_timeout);
+    final response = await _client
+        .get(uri, headers: await _authHeaders())
+        .timeout(_timeout);
     return _decode(response);
   }
 
@@ -65,11 +74,20 @@ class HttpApiService implements ApiService {
     final response = await _client
         .post(
           Uri.parse('$baseUrl$path'),
-          headers: {'Content-Type': 'application/json; charset=utf-8'},
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            ...await _authHeaders(),
+          },
           body: jsonEncode(body),
         )
         .timeout(_timeout);
     return _decode(response);
+  }
+
+  /// アクセストークンがあれば `Authorization: Bearer <トークン>` のヘッダーを返す
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await accessToken?.call();
+    return token == null ? const {} : {'Authorization': 'Bearer $token'};
   }
 
   /// レスポンスの本文を JSON として読む。2xx 以外なら [ApiException] を投げる
@@ -84,6 +102,11 @@ class HttpApiService implements ApiService {
 }
 
 /// サーバーとの通信に使う ApiService
+///
+/// リクエストには、サインイン中の人のアクセストークンを付ける
 final apiServiceProvider = Provider<ApiService>(
-  (ref) => HttpApiService(baseUrl: apiBaseUrl),
+  (ref) => HttpApiService(
+    baseUrl: apiBaseUrl,
+    accessToken: () => ref.read(authRepositoryProvider).accessToken(),
+  ),
 );
