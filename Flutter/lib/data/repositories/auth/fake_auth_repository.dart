@@ -67,6 +67,10 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async => _signedIn = false;
+
+  /// 仮の実装はトークンを発行しないので、常に null (API にトークンを付けない)
+  @override
+  Future<String?> accessToken() async => null;
 }
 
 /// 仮のアカウント1件分
