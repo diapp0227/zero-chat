@@ -282,11 +282,11 @@ class _DesktopLayout extends StatelessWidget {
   }
 }
 
-/// スマホ・タブレットの配置。白い画面の上端にロゴ、下寄せでフォーム
+/// スマホ・タブレットの配置。白い画面の上端にロゴ、その下にフォームを上寄せで置く
 class _MobileLayout extends StatelessWidget {
   const _MobileLayout({required this.form});
 
-  /// 画面下寄せで置くフォーム
+  /// ロゴの下に置くフォーム
   final Widget form;
 
   @override
@@ -296,35 +296,20 @@ class _MobileLayout extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            horizontal,
-            28 + padding.top,
-            horizontal,
-            28 + padding.bottom,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight:
-                  constraints.maxHeight - 56 - padding.top - padding.bottom,
-            ),
-            child: IntrinsicHeight(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: AppLogo(),
-                  ),
-                  // ロゴとフォームの間を空けて、フォームを画面の下に寄せる
-                  const Spacer(),
-                  const SizedBox(height: 46),
-                  form,
-                ],
-              ),
-            ),
-          ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          horizontal,
+          28 + padding.top,
+          horizontal,
+          28 + padding.bottom,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Align(alignment: Alignment.centerLeft, child: AppLogo()),
+            const SizedBox(height: 38),
+            form,
+          ],
         ),
       ),
     );
