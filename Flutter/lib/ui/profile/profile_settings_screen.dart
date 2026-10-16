@@ -5,8 +5,10 @@ import '../core/app_colors.dart';
 import '../core/avatar.dart';
 import '../core/sheet.dart';
 import '../core/sheet_header.dart';
+import '../home/home_view_model.dart';
 import '../../domain/models/profile.dart';
 import 'current_profile.dart';
+import 'widgets/profile_color_select.dart';
 import 'widgets/profile_field.dart';
 
 /// プロフィール設定画面を開く
@@ -23,7 +25,7 @@ Future<void> showProfileSettingsScreen(BuildContext context) {
   );
 }
 
-/// プロフィール設定画面。ユーザー名と役職を入力して保存する
+/// プロフィール設定画面。ユーザー名・役職・アバターのカラーを入力して保存する
 ///
 /// 開いたときにサーバーから最新のプロフィールを読み込む。
 /// 入力中の内容は「保存」を押してサーバーに保存できるまでプロフィールに反映しない
@@ -45,6 +47,9 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
   late final TextEditingController _nameController;
   late String _role;
 
+  /// 選んでいるアバターのカラー (カラー1・カラー2)
+  late (Color, Color) _colors;
+
   /// 保存中か (「保存」ボタンを押せなくする)
   bool _saving = false;
 
@@ -60,6 +65,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       // アバターの頭文字・文字数・「保存」の押せる・押せないを入力に合わせて切り替える
       ..addListener(() => setState(() {}));
     _role = profile.role;
+    _colors = profile.avatarColors;
     _loadLatest();
   }
 
@@ -69,11 +75,16 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     await ref.read(currentProfileProvider.notifier).load();
     if (!mounted) return;
     // 読み込み中に入力を始めていたら、入力したほうを残す
-    if (_nameController.text != before.name || _role != before.role) return;
+    if (_nameController.text != before.name ||
+        _role != before.role ||
+        _colors != before.avatarColors) {
+      return;
+    }
     final latest = ref.read(currentProfileProvider);
     setState(() {
       _nameController.text = latest.name;
       _role = latest.role;
+      _colors = latest.avatarColors;
     });
   }
 
@@ -84,8 +95,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
   }
 
   Future<void> _save() async {
-    // カラーはまだこの画面で選べないので、今のカラーのまま保存する
-    final current = ref.read(currentProfileProvider);
+    final (color1, color2) = _colors;
     setState(() {
       _saving = true;
       _saveFailed = false;
@@ -97,10 +107,12 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             Profile(
               name: _nameController.text.trim(),
               role: _role,
-              color1: current.color1,
-              color2: current.color2,
+              color1: color1,
+              color2: color2,
             ),
           );
+      // 投稿・返信はサーバーが最新のプロフィールで返すので、読み込み直して新しい名前・色にする
+      ref.invalidate(homeViewModelProvider);
       if (mounted) Navigator.of(context).pop();
     } on Exception {
       // 画面は閉じずに、入力した内容のまま保存し直せるようにする
@@ -137,10 +149,8 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _ProfileIntro(
-                  name: name,
-                  colors: ref.watch(currentProfileProvider).avatarColors,
-                ),
+                // 選んだカラーを、保存する前からアバターに反映して見せる
+                _ProfileIntro(name: name, colors: _colors),
                 const SizedBox(height: 27),
                 ProfileField(
                   label: 'ユーザー名',
@@ -158,6 +168,14 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                     value: _role,
                     options: profileRoles,
                     onChanged: (role) => setState(() => _role = role),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ProfileField(
+                  label: 'カラー',
+                  child: ProfileColorSelect(
+                    value: _colors,
+                    onChanged: (colors) => setState(() => _colors = colors),
                   ),
                 ),
               ],
@@ -205,7 +223,7 @@ class _ProfileIntro extends StatelessWidget {
                 ),
               ),
               Text(
-                'タイムラインに表示される情報です',
+                'タイムラインに表示される情報とカラーです',
                 style: TextStyle(color: AppColors.sheetSubtitle, fontSize: 10),
               ),
             ],
