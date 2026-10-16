@@ -51,14 +51,14 @@ void main() {
       final created = await repository.createPost(
         category: PostCategory.announcement,
         text: 'お知らせの本文',
-        authorName: 'やまもと',
+        authorName: 'ああああ',
         authorRole: 'デザイナー',
       );
       final posts = await repository.fetchPosts();
 
       expect(posts.first.id, created.id);
       expect(created.text, 'お知らせの本文');
-      expect(created.author.name, 'やまもと');
+      expect(created.author.name, 'ああああ');
       expect(created.author.role, 'デザイナー');
     });
 
@@ -68,7 +68,7 @@ void main() {
       final created = await repository.createPost(
         category: PostCategory.announcement,
         text: 'お知らせの本文',
-        authorName: 'やまもと',
+        authorName: 'ああああ',
         authorRole: 'デザイナー',
       );
 
@@ -89,7 +89,7 @@ void main() {
         await repository.createPost(
           category: PostCategory.dailyReport,
           text: '日報 $i',
-          authorName: 'やまもと',
+          authorName: 'ああああ',
           authorRole: 'エンジニア',
         );
       }

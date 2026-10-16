@@ -73,7 +73,7 @@ void main() {
     addTearDown(container.dispose);
     await container
         .read(currentProfileProvider.notifier)
-        .save(const Profile(name: 'やまもと', role: 'デザイナー'));
+        .save(const Profile(name: 'ああああ', role: 'デザイナー'));
     // 投稿画面が開いている間と同じく、状態を見ている人がいる状態にする
     container.listen(composeViewModelProvider, (_, _) {});
     return container;
@@ -98,7 +98,7 @@ void main() {
       expect(repository.createdPosts.single, {
         'category': PostCategory.dailyReport,
         'text': '日報の本文',
-        'authorName': 'やまもと',
+        'authorName': 'ああああ',
         'authorRole': 'デザイナー',
       });
       expect(container.read(composeViewModelProvider), isA<AsyncData<void>>());

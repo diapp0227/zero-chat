@@ -145,7 +145,7 @@ void main() {
       final api = _TestApiService({
         'post': {
           'id': 11,
-          'author': {'id': 0, 'name': 'やまもと', 'role': 'デザイナー'},
+          'author': {'id': 0, 'name': 'ああああ', 'role': 'デザイナー'},
           'category': 'selfStudy',
           'text': '自己学習の本文',
           'postedAt': '2026-10-15T09:00:00Z',
@@ -156,7 +156,7 @@ void main() {
       await HttpPostRepository(api).createPost(
         category: PostCategory.selfStudy,
         text: '自己学習の本文',
-        authorName: 'やまもと',
+        authorName: 'ああああ',
         authorRole: 'デザイナー',
       );
 
@@ -164,7 +164,7 @@ void main() {
       expect(api.postedBody, {
         'category': 'selfStudy',
         'text': '自己学習の本文',
-        'author': {'name': 'やまもと', 'role': 'デザイナー'},
+        'author': {'name': 'ああああ', 'role': 'デザイナー'},
       });
     });
 
@@ -172,7 +172,7 @@ void main() {
       final api = _TestApiService({
         'post': {
           'id': 11,
-          'author': {'id': 0, 'name': 'やまもと', 'role': 'デザイナー'},
+          'author': {'id': 0, 'name': 'ああああ', 'role': 'デザイナー'},
           'category': 'selfStudy',
           'text': '自己学習の本文',
           'postedAt': '2026-10-15T09:00:00Z',
@@ -183,14 +183,14 @@ void main() {
       final post = await HttpPostRepository(api).createPost(
         category: PostCategory.selfStudy,
         text: '自己学習の本文',
-        authorName: 'やまもと',
+        authorName: 'ああああ',
         authorRole: 'デザイナー',
       );
 
       // 番号と投稿日時はサーバーが付けたもの
       expect(post.id, 11);
       expect(post.postedAt, DateTime.utc(2026, 10, 15, 9).toLocal());
-      expect(post.author.name, 'やまもと');
+      expect(post.author.name, 'ああああ');
       expect(post.category, PostCategory.selfStudy);
       expect(post.replies, isEmpty);
     });
