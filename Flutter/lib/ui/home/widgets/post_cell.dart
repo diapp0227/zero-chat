@@ -6,6 +6,7 @@ import '../../core/app_colors.dart';
 import '../../core/app_icon.dart';
 import '../../core/avatar.dart';
 import '../../core/elapsed_time_label.dart';
+import '../../reply/reply_screen.dart';
 import '../timeline_post.dart';
 
 /// タイムラインの投稿1件分
@@ -75,7 +76,7 @@ class _PostCellState extends State<PostCell> {
             _PostImage(image: image, isNarrow: isNarrow),
             const SizedBox(height: 13),
           ],
-          const _ReplySummary(),
+          _ReplySummary(onTap: () => showReplyScreen(context, post)),
           if (hasReplies) ...[
             const SizedBox(height: 11),
             _RepliesToggle(
@@ -425,21 +426,42 @@ class _PostImage extends StatelessWidget {
   }
 }
 
-/// 「返信する」の表示。返信の件数は「N件の返信」のほうに出す
+/// 「返信する」のボタン。押すと返信画面を開く。返信の件数は「N件の返信」のほうに出す
 class _ReplySummary extends StatelessWidget {
-  const _ReplySummary();
+  const _ReplySummary({required this.onTap});
+
+  /// 押されたときの処理
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      spacing: 7,
-      children: const [
-        AppIcon(AppIconName.comment, size: 18, color: AppColors.replySummary),
-        Text(
-          '返信する',
-          style: TextStyle(color: AppColors.replySummary, fontSize: 10),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: const MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 7,
+              children: [
+                AppIcon(
+                  AppIconName.comment,
+                  size: 18,
+                  color: AppColors.replySummary,
+                ),
+                Text(
+                  '返信する',
+                  style: TextStyle(color: AppColors.replySummary, fontSize: 10),
+                ),
+              ],
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 }

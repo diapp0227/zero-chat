@@ -7,6 +7,7 @@ import 'package:zero_chat/domain/models/author.dart';
 import 'package:zero_chat/domain/models/post.dart';
 import 'package:zero_chat/domain/models/post_category.dart';
 import 'package:zero_chat/domain/models/profile.dart';
+import 'package:zero_chat/domain/models/reply.dart';
 import 'package:zero_chat/ui/compose/compose_view_model.dart';
 import 'package:zero_chat/ui/home/home_view_model.dart';
 import 'package:zero_chat/ui/profile/current_profile.dart';
@@ -52,6 +53,13 @@ class _TestPostRepository implements PostRepository {
       postedAt: DateTime(2026, 10, 15),
     );
   }
+
+  @override
+  Future<Reply> createReply({
+    required int postId,
+    required String text,
+    required Profile author,
+  }) => throw UnimplementedError();
 }
 
 void main() {

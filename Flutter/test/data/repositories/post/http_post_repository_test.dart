@@ -1,8 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zero_chat/data/repositories/post/http_post_repository.dart';
 import 'package:zero_chat/data/services/api/api_service.dart';
 import 'package:zero_chat/domain/models/post_category.dart';
+import 'package:zero_chat/domain/models/profile.dart';
 
 /// テスト用の ApiService。リクエストを記録し、決まった JSON を返す
 class _TestApiService implements ApiService {
@@ -190,6 +193,73 @@ void main() {
       expect(post.author.name, 'やまもと');
       expect(post.category, PostCategory.selfStudy);
       expect(post.replies, isEmpty);
+    });
+
+    test('author のカラーを読み、なければ null にする', () async {
+      final api = _TestApiService({
+        'posts': [
+          {
+            'id': 1,
+            'author': {
+              'id': 0,
+              'name': 'ああああ',
+              'role': 'エンジニア',
+              'color1': '#80C9B2',
+              'color2': '#458B78',
+            },
+            'category': 'announcement',
+            'text': '本文',
+            'postedAt': '2026-10-14T09:00:00Z',
+            'replies': [
+              {
+                'id': 1,
+                'author': {'id': 5, 'name': 'くま', 'role': 'デザイナー'},
+                'text': '返信の本文',
+                'repliedAt': '2026-10-14T09:15:00Z',
+              },
+            ],
+          },
+        ],
+      });
+
+      final post = (await HttpPostRepository(api).fetchPosts()).single;
+
+      expect(post.author.avatarColors, (
+        const Color(0xFF80C9B2),
+        const Color(0xFF458B78),
+      ));
+      expect(post.replies.single.author.avatarColors, isNull);
+    });
+
+    test('返信するとき、本文だけを /posts/{id}/replies に POST し、返った返信を返す', () async {
+      final api = _TestApiService({
+        'reply': {
+          'id': 4,
+          'author': {
+            'id': 0,
+            'name': 'ああああ',
+            'role': 'エンジニア',
+            'color1': '#E8BD79',
+            'color2': '#B87947',
+          },
+          'text': '返信の本文',
+          'repliedAt': '2026-10-16T09:15:00Z',
+        },
+      });
+
+      final reply = await HttpPostRepository(api).createReply(
+        postId: 2,
+        text: '返信の本文',
+        author: const Profile(name: 'ああああ', role: 'エンジニア'),
+      );
+
+      expect(api.postedPath, '/posts/2/replies');
+      // 返信した人はサーバーがトークンから決めるので送らない
+      expect(api.postedBody, {'text': '返信の本文'});
+      expect(reply.id, 4);
+      expect(reply.author.name, 'ああああ');
+      expect(reply.author.avatarColors?.$1, const Color(0xFFE8BD79));
+      expect(reply.repliedAt, DateTime.utc(2026, 10, 16, 9, 15).toLocal());
     });
   });
 }

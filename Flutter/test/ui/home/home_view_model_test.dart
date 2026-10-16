@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,6 +8,7 @@ import 'package:zero_chat/data/repositories/post/post_repository_provider.dart';
 import 'package:zero_chat/domain/models/author.dart';
 import 'package:zero_chat/domain/models/post.dart';
 import 'package:zero_chat/domain/models/post_category.dart';
+import 'package:zero_chat/domain/models/profile.dart';
 import 'package:zero_chat/domain/models/reply.dart';
 import 'package:zero_chat/ui/core/avatar.dart';
 import 'package:zero_chat/ui/home/home_view_model.dart';
@@ -35,6 +38,13 @@ class _TestPostRepository implements PostRepository {
     required String text,
     required String authorName,
     required String authorRole,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Reply> createReply({
+    required int postId,
+    required String text,
+    required Profile author,
   }) => throw UnimplementedError();
 }
 
@@ -82,6 +92,35 @@ void main() {
     expect(post.text, '日報の本文');
     expect(post.replies.single.id, 11);
     expect(post.replies.single.text, '返信の本文');
+  });
+
+  test('author にカラーがあれば、その色でアバターを描く', () async {
+    const colors = (Color(0xFF80C9B2), Color(0xFF458B78));
+    const colored = Author(
+      id: 0,
+      name: 'ああああ',
+      role: 'エンジニア',
+      avatarColors: colors,
+    );
+    final container = createContainer(
+      _TestPostRepository([
+        Post(
+          id: 30,
+          author: colored,
+          category: PostCategory.selfStudy,
+          text: '本文',
+          postedAt: postedAt,
+          replies: [
+            Reply(id: 1, author: colored, text: '返信', repliedAt: postedAt),
+          ],
+        ),
+      ]),
+    );
+
+    final post = (await container.read(homeViewModelProvider.future)).single;
+
+    expect(post.avatarColors, colors);
+    expect(post.replies.single.avatarColors, colors);
   });
 
   test('「最新」ではすべての投稿を取得する', () async {

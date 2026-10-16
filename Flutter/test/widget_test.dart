@@ -17,6 +17,11 @@ import 'package:zero_chat/ui/home/widgets/timeline_header.dart';
 import 'package:zero_chat/ui/home/widgets/timeline_category_tabs.dart';
 import 'package:zero_chat/ui/home/widgets/post_cell.dart';
 import 'package:zero_chat/ui/profile/current_profile.dart';
+import 'package:zero_chat/ui/reply/reply_screen.dart';
+import 'package:zero_chat/ui/core/sheet_header.dart';
+import 'package:zero_chat/data/repositories/profile/fake_profile_repository.dart';
+import 'package:zero_chat/data/repositories/profile/profile_repository_provider.dart';
+import 'package:zero_chat/domain/models/profile.dart';
 import 'package:zero_chat/ui/shell/bottom_nav_bar.dart';
 import 'package:zero_chat/ui/shell/desktop_top_bar.dart';
 
@@ -189,6 +194,50 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.bySemanticsLabel('保存'), findsOneWidget);
     });
+  });
+
+  testWidgets('「返信する」から返信すると、投稿の下に返信が出る', (WidgetTester tester) async {
+    setScreenSize(tester, const Size(390, 844));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authSessionProvider.overrideWithBuild((ref, notifier) => true),
+          // 返信にはユーザー名が要るので、プロフィールを保存済みにしておく
+          profileRepositoryProvider.overrideWithValue(
+            FakeProfileRepository(
+              profile: const Profile(name: 'ああああ', role: 'エンジニア'),
+            ),
+          ),
+        ],
+        child: const App(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('返信する').first);
+    await tester.pumpAndSettle();
+    expect(find.byType(ReplyScreen), findsOneWidget);
+    expect(find.textContaining('さんの投稿に返信'), findsOneWidget);
+
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(ReplyScreen),
+        matching: find.byType(TextField),
+      ),
+      'テストの返信',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SheetPrimaryButton),
+        matching: find.text('返信する'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ReplyScreen), findsNothing);
+    expect(find.text('テストの返信'), findsOneWidget);
   });
 
   group('サインイン画面', () {

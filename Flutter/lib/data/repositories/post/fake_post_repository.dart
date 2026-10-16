@@ -1,6 +1,7 @@
 import '../../../domain/models/author.dart';
 import '../../../domain/models/post.dart';
 import '../../../domain/models/post_category.dart';
+import '../../../domain/models/profile.dart';
 import '../../../domain/models/reply.dart';
 import 'post_repository.dart';
 
@@ -19,7 +20,7 @@ const _cat = Author(id: 9, name: 'ねこ', role: 'エンジニア');
 ///
 /// サーバーとの通信を作るまでの代わり。
 /// 投稿・返信日時は、このクラスを作った時刻からさかのぼった日時にしている。
-/// createPost で作った投稿はメモリ上にだけ持ち、アプリを閉じると消える
+/// createPost で作った投稿と createReply で作った返信はメモリ上にだけ持ち、アプリを閉じると消える
 class FakePostRepository implements PostRepository {
   /// 投稿・返信日時の基準にする時刻
   final DateTime _createdAt = DateTime.now();
@@ -27,12 +28,15 @@ class FakePostRepository implements PostRepository {
   // createPost で作った投稿
   final List<Post> _createdPosts = [];
 
+  // createReply で作った返信 (投稿の番号ごと)
+  final Map<int, List<Reply>> _createdReplies = {};
+
   @override
   Future<List<Post>> fetchPosts({PostCategory? category}) async {
-    final posts = [
-      ..._posts(),
-      ..._createdPosts,
-    ].where((post) => category == null || post.category == category).toList();
+    final posts = [..._posts(), ..._createdPosts]
+        .where((post) => category == null || post.category == category)
+        .map(_withCreatedReplies)
+        .toList();
     posts.sort((a, b) => b.postedAt.compareTo(a.postedAt));
     return posts;
   }
@@ -56,6 +60,48 @@ class FakePostRepository implements PostRepository {
     return post;
   }
 
+  @override
+  Future<Reply> createReply({
+    required int postId,
+    required String text,
+    required Profile author,
+  }) async {
+    final post = [
+      ..._posts(),
+      ..._createdPosts,
+    ].where((post) => post.id == postId).firstOrNull;
+    if (post == null) throw ArgumentError.value(postId, 'postId', '投稿がありません');
+
+    final reply = Reply(
+      id: _nextId(),
+      // サーバーと同じく、返信した人の番号は 0 にしてプロフィールの名前・役職・色を使う
+      author: Author(
+        id: 0,
+        name: author.name,
+        role: author.role,
+        avatarColors: author.avatarColors,
+      ),
+      text: text,
+      repliedAt: DateTime.now(),
+    );
+    _createdReplies.putIfAbsent(postId, () => []).add(reply);
+    return reply;
+  }
+
+  /// [post] の返信の最後に、createReply で作った返信を足した投稿
+  Post _withCreatedReplies(Post post) {
+    final created = _createdReplies[post.id];
+    if (created == null) return post;
+    return Post(
+      id: post.id,
+      author: post.author,
+      category: post.category,
+      text: post.text,
+      postedAt: post.postedAt,
+      replies: [...post.replies, ...created],
+    );
+  }
+
   /// まだ使われていない番号 (投稿・返信の番号の最大値 + 1)
   int _nextId() {
     final ids = [
@@ -63,6 +109,8 @@ class FakePostRepository implements PostRepository {
         post.id,
         for (final reply in post.replies) reply.id,
       ],
+      for (final replies in _createdReplies.values)
+        for (final reply in replies) reply.id,
     ];
     return ids.reduce((a, b) => a > b ? a : b) + 1;
   }

@@ -190,6 +190,15 @@ abstract final class AppColors {
   /// プロフィール設定画面：選択中の入力欄の外側の帯
   static const profileFieldFocusRing = Color(0xFFE7E9D8);
 
+  /// 返信画面：「〇〇さんの投稿に返信」の帯の背景
+  static const replyingToBackground = Color(0xFFF5F5EE);
+
+  /// 返信画面：「〇〇さんの投稿に返信」の文字
+  static const replyingToText = Color(0xFF85857C);
+
+  /// 返信画面：「〇〇さんの投稿に返信」の投稿者の名前
+  static const replyingToName = Color(0xFF4B4C45);
+
   /// 投稿画面：送信に失敗したときのメッセージの背景
   static const composeErrorBackground = Color(0xFFF8ECE9);
 

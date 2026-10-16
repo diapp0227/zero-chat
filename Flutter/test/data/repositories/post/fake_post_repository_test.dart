@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zero_chat/data/repositories/post/fake_post_repository.dart';
 import 'package:zero_chat/domain/models/post_category.dart';
+import 'package:zero_chat/domain/models/profile.dart';
 
 void main() {
   group('FakePostRepository', () {
@@ -101,6 +102,47 @@ void main() {
       ];
 
       expect(ids.toSet().length, ids.length);
+    });
+
+    test('返信すると、その投稿の返信の最後に出て、番号はほかと重ならない', () async {
+      final repository = FakePostRepository();
+      final target = (await repository.fetchPosts()).first;
+
+      final reply = await repository.createReply(
+        postId: target.id,
+        text: '返信の本文',
+        author: const Profile(name: 'ああああ', role: 'エンジニア'),
+      );
+      final posts = await repository.fetchPosts();
+
+      final updated = posts.firstWhere((post) => post.id == target.id);
+      expect(updated.replies.length, target.replies.length + 1);
+      expect(updated.replies.last.id, reply.id);
+      expect(reply.author.name, 'ああああ');
+      // プロフィールのカラーで表示する
+      expect(reply.author.avatarColors, (
+        Profile.defaultColor1,
+        Profile.defaultColor2,
+      ));
+
+      final ids = [
+        for (final post in posts) ...[
+          post.id,
+          for (final reply in post.replies) reply.id,
+        ],
+      ];
+      expect(ids.toSet().length, ids.length);
+    });
+
+    test('ない投稿に返信するとエラーになる', () async {
+      expect(
+        FakePostRepository().createReply(
+          postId: 9999,
+          text: '返信',
+          author: const Profile(name: 'ああああ', role: 'エンジニア'),
+        ),
+        throwsArgumentError,
+      );
     });
   });
 }

@@ -1,7 +1,9 @@
 import '../../../domain/models/post.dart';
 import '../../../domain/models/post_category.dart';
+import '../../../domain/models/profile.dart';
+import '../../../domain/models/reply.dart';
 
-/// 投稿を取得・作成する窓口
+/// 投稿を取得・作成し、返信する窓口
 ///
 /// 画面からは、この抽象クラスだけを使う。
 /// 取得元 (仮のデータ・サーバーなど) を変えるときは、実装クラスを差し替える
@@ -20,5 +22,15 @@ abstract class PostRepository {
     required String text,
     required String authorName,
     required String authorRole,
+  });
+
+  /// 番号 [postId] の投稿に、本文 [text] で返信し、作成された返信を返す
+  ///
+  /// 返信の番号と返信日時は、作成する側 (サーバーなど) が決める。
+  /// [author] は返信する人のプロフィール。サーバー版はトークンからプロフィールを決めるので使わない
+  Future<Reply> createReply({
+    required int postId,
+    required String text,
+    required Profile author,
   });
 }

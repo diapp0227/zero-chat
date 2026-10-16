@@ -33,7 +33,7 @@ class HomeViewModel extends AsyncNotifier<List<TimelinePost>> {
     id: post.id,
     authorName: post.author.name,
     authorRole: post.author.role,
-    avatarColors: avatarColorsFor(post.author.id),
+    avatarColors: post.author.avatarColors ?? avatarColorsFor(post.author.id),
     postedAt: post.postedAt,
     // 投稿の種類を、本文の上のタイトルとして表示する
     title: post.category.label,
@@ -45,7 +45,7 @@ class HomeViewModel extends AsyncNotifier<List<TimelinePost>> {
     id: reply.id,
     authorName: reply.author.name,
     authorRole: reply.author.role,
-    avatarColors: avatarColorsFor(reply.author.id),
+    avatarColors: reply.author.avatarColors ?? avatarColorsFor(reply.author.id),
     repliedAt: reply.repliedAt,
     text: reply.text,
   );
