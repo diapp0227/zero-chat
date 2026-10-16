@@ -1,6 +1,7 @@
 # Lambda 関数の仕様: `zero-chat-create-post`
 
-アプリから送られた投稿を検証し、番号と投稿日時を付けて DynamoDB に保存する関数。
+アプリから送られた投稿を検証し、番号・投稿日時・投稿した人を付けて DynamoDB に保存する関数。
+投稿した人 (`author`) は、トークンの `sub` で読んだプロフィール (`zero-chat-profiles`) から決める。
 API Gateway の `POST /posts` から呼ばれる。
 
 ## 関数の設定
@@ -20,6 +21,7 @@ API Gateway の `POST /posts` から呼ばれる。
 | キー | 値 | 説明 |
 |---|---|---|
 | `TABLE_NAME` | `zero-chat-posts` | 書き込む DynamoDB テーブルの名前 |
+| `PROFILES_TABLE_NAME` | `zero-chat-profiles` | 投稿した人のプロフィールを読むテーブルの名前 |
 
 ### 実行ロールの権限
 
@@ -36,6 +38,11 @@ API Gateway の `POST /posts` から呼ばれる。
       "Effect": "Allow",
       "Action": ["dynamodb:UpdateItem", "dynamodb:PutItem"],
       "Resource": "arn:aws:dynamodb:ap-northeast-1:<アカウントID>:table/zero-chat-posts"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "dynamodb:GetItem",
+      "Resource": "arn:aws:dynamodb:ap-northeast-1:<アカウントID>:table/zero-chat-profiles"
     }
   ]
 }
@@ -45,8 +52,9 @@ API Gateway の `POST /posts` から呼ばれる。
 |---|---|
 | `dynamodb:UpdateItem` | 投稿の番号を数える項目 (`id: 0`) の `lastPostId` を 1 増やす |
 | `dynamodb:PutItem` | 投稿を書き込む |
+| `dynamodb:GetItem` (`zero-chat-profiles`) | 投稿した人のプロフィールを読む |
 
-読み取り・削除はできない。
+投稿の読み取り・削除はできない。
 
 ---
 
@@ -62,8 +70,7 @@ Content-Type: application/json
 ```json
 {
   "category": "dailyReport",
-  "text": "今日はチームでコードレビュー。",
-  "author": { "name": "やまもと", "role": "エンジニア" }
+  "text": "今日はチームでコードレビュー。"
 }
 ```
 
@@ -71,12 +78,10 @@ Content-Type: application/json
 |---|---|---|---|
 | `category` | 文字列 | ○ | `announcement` / `dailyReport` / `selfStudy` のどれか |
 | `text` | 文字列 | ○ | 前後の空白を除いて 1 文字以上、**180 文字以下** |
-| `author` | オブジェクト | ○ | 投稿した人 |
-| `author.name` | 文字列 | ○ | 前後の空白を除いて 1 文字以上、**30 文字以下** |
-| `author.role` | 文字列 | ○ | `エンジニア` / `デザイナー` / `プロダクトマネージャー` / `セールス` / `コーポレート` のどれか |
 
-- 文字数の上限は、アプリの入力欄 (投稿画面の本文・プロフィール設定のユーザー名) と同じ
-- 番号 (`id`)・投稿日時 (`postedAt`)・`author.id` は送らない (送っても使わない)。サーバーが決める
+- 本文の上限は、アプリの投稿画面の入力欄と同じ
+- 番号 (`id`)・投稿日時 (`postedAt`)・投稿した人 (`author`) は送らない。サーバーが決める。
+  以前の形の `author` を送っても使わない (他人の名前を名乗れないようにするため)
 
 ### レスポンス (201 Created)
 
@@ -86,7 +91,7 @@ Content-Type: application/json
 {
   "post": {
     "id": 11,
-    "author": { "id": 0, "name": "やまもと", "role": "エンジニア" },
+    "author": { "id": 0, "name": "ああああ", "role": "エンジニア", "color1": "#E8BD79", "color2": "#B87947" },
     "category": "dailyReport",
     "text": "今日はチームでコードレビュー。",
     "postedAt": "2026-10-15T09:00:00Z",
@@ -98,9 +103,10 @@ Content-Type: application/json
 | フィールド | 型 | 説明 |
 |---|---|---|
 | `post.id` | 整数 | サーバーが付けた投稿の番号 |
-| `post.author.id` | 整数 | 投稿した人の番号。ログインの仕組みができるまでは常に `0` |
-| `post.author.name` | 文字列 | リクエストの名前 (前後の空白を除いたもの) |
-| `post.author.role` | 文字列 | リクエストの役職 |
+| `post.author.id` | 整数 | 投稿した人の番号。常に `0` |
+| `post.author.name` | 文字列 | プロフィールのユーザー名 |
+| `post.author.role` | 文字列 | プロフィールの役職 |
+| `post.author.color1`・`color2` | 文字列 | プロフィールのカラー1・カラー2 (`#RRGGBB`) |
 | `post.category` | 文字列 | リクエストの種類 |
 | `post.text` | 文字列 | リクエストの本文 (前後の空白を除いたもの) |
 | `post.postedAt` | 文字列 | サーバーが付けた投稿日時 (UTC、ISO 8601、秒まで) |
@@ -119,10 +125,8 @@ Content-Type: application/json
 | 400 Bad Request | `category` が 3 種類のどれでもない | `{"message": "unknown category: <値>"}` |
 | 400 Bad Request | `text` がない・空・空白だけ | `{"message": "text is required"}` |
 | 400 Bad Request | `text` が 180 文字より長い | `{"message": "text must be at most 180 characters"}` |
-| 400 Bad Request | `author` がない | `{"message": "author is required"}` |
-| 400 Bad Request | `author.name` がない・空・空白だけ | `{"message": "author.name is required"}` |
-| 400 Bad Request | `author.name` が 30 文字より長い | `{"message": "author.name must be at most 30 characters"}` |
-| 400 Bad Request | `author.role` が決まった役職のどれでもない | `{"message": "unknown author.role: <値>"}` |
+| 400 Bad Request | 投稿した人のプロフィールがまだない | `{"message": "profile is required"}` |
+| 401 Unauthorized | トークンがない・正しくない (API Gateway が返す)、または `sub` が取れない | `{"message": "Unauthorized"}` |
 | 429 Too Many Requests | ルートのスロットリングの上限を超えた | `{"message": "Too Many Requests"}` (API Gateway が返す) |
 | 500 Internal Server Error | 番号が既存の投稿とぶつかった、DynamoDB の書き込みに失敗したなど | `{"message": "Internal Server Error"}` (API Gateway が返す) |
 
@@ -137,10 +141,11 @@ Content-Type: application/json
 1. `body` を JSON として読む。HTTP API はボディを Base64 で送ってくることがあるので、
    `isBase64Encoded` が true なら先に戻す
 2. 入力をチェックする。問題があれば、最初に見つかった問題を 400 で返して終わる
-3. 番号の項目 (`id: 0`) の `lastPostId` を `ADD` で 1 増やし、増やした後の値を新しい投稿の番号にする
-4. 投稿日時を、今の UTC の時刻から `YYYY-MM-DDTHH:MM:SSZ` の形で作る
-5. 投稿を `PutItem` で保存する。`feed: "ALL"` も一緒に書き込み、タイムラインのインデックスに載せる
-6. 保存した投稿 (`feed` を除く) を 201 で返す
+3. トークンの `sub` で `zero-chat-profiles` を読み、名前・役職・カラーを `author` にする。プロフィールがなければ 400
+4. 番号の項目 (`id: 0`) の `lastPostId` を `ADD` で 1 増やし、増やした後の値を新しい投稿の番号にする
+5. 投稿日時を、今の UTC の時刻から `YYYY-MM-DDTHH:MM:SSZ` の形で作る
+6. 投稿を `PutItem` で保存する。`feed: "ALL"` も一緒に書き込み、タイムラインのインデックスに載せる
+7. 保存した投稿 (`feed` を除く) を 201 で返す
 
 ### 番号が重ならない理由
 
@@ -165,27 +170,28 @@ Lambda で「最大の番号を読んでから 1 足す」と書くと、同時�
 リポジトリのこのファイルを正とする。修正したら、Lambda コンソールの「コード」タブに貼り付けて「Deploy」する
 (AWS 上のコードとずれないよう、両方を必ず一緒に更新する)。
 
-- 種類 (`CATEGORIES`) と役職 (`ROLES`) の一覧は、アプリの `PostCategory` と `profileRoles` に合わせている。
-  どちらかを増やすときは、もう片方も一緒に変える
+- 種類 (`CATEGORIES`) の一覧は、アプリの `PostCategory` に合わせている。増やすときは両方を一緒に変える
 - `table` を関数の外で作っているのは、Lambda が同じ実行環境を使い回すときに接続を再利用するため
 
 ## テストイベント
 
 Lambda コンソールの「テスト」タブで使うイベント。`body` は文字列にした JSON。
+コンソールのテストは JWT オーソライザーを通らないので、`requestContext` にユーザーの番号 (`sub`) を自分で書く。
+その `sub` のプロフィールが `zero-chat-profiles` にないと 400 (`profile is required`) になる。
 
 | イベント名 | `body` の中身 | 期待する結果 |
 |---|---|---|
-| `create` | `{"category": "dailyReport", "text": "テスト投稿", "author": {"name": "テスト", "role": "エンジニア"}}` | 201、番号と投稿日時が付いた投稿 |
-| `emptyText` | `{"category": "dailyReport", "text": "   ", "author": {"name": "テスト", "role": "エンジニア"}}` | 400、`text is required` |
-| `unknownCategory` | `{"category": "foo", "text": "テスト投稿", "author": {"name": "テスト", "role": "エンジニア"}}` | 400、`unknown category: foo` |
-| `unknownRole` | `{"category": "dailyReport", "text": "テスト投稿", "author": {"name": "テスト", "role": "社長"}}` | 400、`unknown author.role: 社長` |
+| `create` | `{"category": "dailyReport", "text": "テスト投稿"}` | 201、番号・投稿日時・プロフィールの `author` が付いた投稿 |
+| `emptyText` | `{"category": "dailyReport", "text": "   "}` | 400、`text is required` |
+| `unknownCategory` | `{"category": "foo", "text": "テスト投稿"}` | 400、`unknown category: foo` |
 | `invalidJson` | `{` | 400、`body must be valid JSON` |
 
 `create` のイベントの書き方の例:
 
 ```json
 {
-  "body": "{\"category\": \"dailyReport\", \"text\": \"テスト投稿\", \"author\": {\"name\": \"テスト\", \"role\": \"エンジニア\"}}"
+  "requestContext": { "authorizer": { "jwt": { "claims": { "sub": "<プロフィールがあるユーザーの sub>" } } } },
+  "body": "{\"category\": \"dailyReport\", \"text\": \"テスト投稿\"}"
 }
 ```
 
@@ -193,7 +199,7 @@ Lambda コンソールの「テスト」タブで使うイベント。`body` は
 
 ## 制限と今後の課題
 
-- **認証なし**: 誰でも投稿でき、名前と役職も自由に名乗れる。`author.id` も常に `0`
+- **`author.id` は常に `0`**: 名前・役職・色はプロフィールから決めるが、人を見分ける番号はまだ使っていない
 - **編集・削除はできない**
 - **TODO**: 投稿の `id` を連番から UUID に変え、番号を数える項目をなくす。詳しくは [posts-table.md](posts-table.md) の「TODO: 投稿の `id` を UUID にする」
 - **文字数の数え方の違い**: Python の `len` は Unicode のコードポイント数を数える。

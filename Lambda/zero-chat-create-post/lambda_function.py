@@ -7,21 +7,22 @@ from decimal import Decimal
 import boto3
 
 TABLE_NAME = os.environ["TABLE_NAME"]
+PROFILES_TABLE_NAME = os.environ["PROFILES_TABLE_NAME"]
 CATEGORIES = {"announcement", "dailyReport", "selfStudy"}
-ROLES = {"エンジニア", "デザイナー", "プロダクトマネージャー", "セールス", "コーポレート"}
 
-# 本文・名前の最大文字数 (アプリの入力欄と揃える)
+# 本文の最大文字数 (アプリの入力欄と揃える)
 MAX_TEXT_LENGTH = 180
-MAX_NAME_LENGTH = 30
 
 # 投稿の番号を数えるための項目のキー。
 # feed / category / postedAt を持たないので、インデックスに載らずタイムラインには出ない
 COUNTER_KEY = {"id": 0}
 
-# ログインの仕組みができるまでは、投稿した人の番号を固定にする
-GUEST_AUTHOR_ID = 0
+# 投稿した人の番号。プロフィールで名前・役職・色を決めるようになったが、番号はまだ使わないので 0 にする
+AUTHOR_ID = 0
 
-table = boto3.resource("dynamodb").Table(TABLE_NAME)
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table(TABLE_NAME)
+profiles_table = dynamodb.Table(PROFILES_TABLE_NAME)
 
 
 def _to_json(value):
@@ -39,6 +40,17 @@ def _response(status, body):
     }
 
 
+def _user_id(event):
+    """JWT オーソライザーが確かめたトークンから、サインインしている人の番号 (sub) を取り出す"""
+    claims = (
+        event.get("requestContext", {})
+        .get("authorizer", {})
+        .get("jwt", {})
+        .get("claims", {})
+    )
+    return claims.get("sub")
+
+
 def _parse_body(event):
     body = event.get("body") or ""
     if event.get("isBase64Encoded"):
@@ -47,7 +59,10 @@ def _parse_body(event):
 
 
 def _validate(body):
-    """リクエストの中身を確かめる。問題があればその内容、なければ None を返す"""
+    """リクエストの中身を確かめる。問題があればその内容、なければ None を返す
+
+    投稿した人 (author) は送られてきても使わないので確かめない
+    """
     if not isinstance(body, dict):
         return "body must be a JSON object"
 
@@ -60,17 +75,6 @@ def _validate(body):
         return "text is required"
     if len(text) > MAX_TEXT_LENGTH:
         return f"text must be at most {MAX_TEXT_LENGTH} characters"
-
-    author = body.get("author")
-    if not isinstance(author, dict):
-        return "author is required"
-    name = author.get("name")
-    if not isinstance(name, str) or not name.strip():
-        return "author.name is required"
-    if len(name) > MAX_NAME_LENGTH:
-        return f"author.name must be at most {MAX_NAME_LENGTH} characters"
-    if author.get("role") not in ROLES:
-        return f"unknown author.role: {author.get('role')}"
 
     return None
 
@@ -88,6 +92,11 @@ def _next_post_id():
 
 
 def lambda_handler(event, context):
+    user_id = _user_id(event)
+    if not user_id:
+        # オーソライザーを付け忘れたルートから呼ばれたとき
+        return _response(401, {"message": "Unauthorized"})
+
     try:
         body = _parse_body(event)
     except (ValueError, UnicodeDecodeError):
@@ -97,12 +106,19 @@ def lambda_handler(event, context):
     if error:
         return _response(400, {"message": error})
 
+    # 投稿した人は、アプリから送られた値ではなくプロフィールから決める
+    profile = profiles_table.get_item(Key={"userId": user_id}).get("Item")
+    if profile is None:
+        return _response(400, {"message": "profile is required"})
+
     post = {
         "id": _next_post_id(),
         "author": {
-            "id": GUEST_AUTHOR_ID,
-            "name": body["author"]["name"].strip(),
-            "role": body["author"]["role"],
+            "id": AUTHOR_ID,
+            "name": profile["name"],
+            "role": profile["role"],
+            "color1": profile["color1"],
+            "color2": profile["color2"],
         },
         "category": body["category"],
         "text": body["text"].strip(),

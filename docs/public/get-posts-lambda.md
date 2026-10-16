@@ -89,7 +89,7 @@ GET /posts?category=<種類>
 |---|---|---|
 | `posts` | 配列 | 投稿の一覧 (新しい順、最大 10 件) |
 | `posts[].id` | 整数 | 投稿の番号 |
-| `posts[].author` | オブジェクト | 投稿した人 (`id` 整数 / `name` 文字列 / `role` 文字列) |
+| `posts[].author` | オブジェクト | 投稿した人 (`id` 整数 / `name` 文字列 / `role` 文字列 / `color1`・`color2` 文字列 `#RRGGBB`)。`color1`・`color2` は、プロフィールから作った投稿だけにある |
 | `posts[].category` | 文字列 | 投稿の種類 |
 | `posts[].text` | 文字列 | 本文 |
 | `posts[].postedAt` | 文字列 | 投稿日時 (UTC、ISO 8601) |
