@@ -1,6 +1,7 @@
 # Lambda 関数の仕様: `zero-chat-get-posts`
 
 タイムラインの投稿一覧を DynamoDB から取得して、新しい順に最大 10 件返す関数。
+投稿・返信をした人 (`author`) は、`zero-chat-profiles` の**最新のプロフィール**で上書きして返す。
 API Gateway の `GET /posts` から呼ばれる。
 
 ## 関数の設定
@@ -20,6 +21,7 @@ API Gateway の `GET /posts` から呼ばれる。
 | キー | 値 | 説明 |
 |---|---|---|
 | `TABLE_NAME` | `zero-chat-posts` | 読み取る DynamoDB テーブルの名前 |
+| `PROFILES_TABLE_NAME` | `zero-chat-profiles` | 投稿・返信をした人の最新のプロフィールを読むテーブルの名前 |
 
 ### 実行ロールの権限
 
@@ -36,12 +38,18 @@ API Gateway の `GET /posts` から呼ばれる。
       "Effect": "Allow",
       "Action": "dynamodb:Query",
       "Resource": "arn:aws:dynamodb:ap-northeast-1:<アカウントID>:table/zero-chat-posts/index/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "dynamodb:BatchGetItem",
+      "Resource": "arn:aws:dynamodb:ap-northeast-1:<アカウントID>:table/zero-chat-profiles"
     }
   ]
 }
 ```
 
-テーブルの GSI への Query だけを許可している。書き込みやテーブル本体の読み取りはできない。
+投稿テーブルの GSI への Query と、プロフィールテーブルのまとめ読み (BatchGetItem) だけを許可している。
+書き込みや投稿テーブル本体の読み取りはできない。
 
 ---
 
@@ -89,7 +97,7 @@ GET /posts?category=<種類>
 |---|---|---|
 | `posts` | 配列 | 投稿の一覧 (新しい順、最大 10 件) |
 | `posts[].id` | 整数 | 投稿の番号 |
-| `posts[].author` | オブジェクト | 投稿した人 (`id` 整数 / `name` 文字列 / `role` 文字列 / `color1`・`color2` 文字列 `#RRGGBB`)。`color1`・`color2` は、プロフィールから作った投稿だけにある |
+| `posts[].author` | オブジェクト | 投稿した人 (`id` 整数 / `name` 文字列 / `role` 文字列 / `color1`・`color2` 文字列 `#RRGGBB`)。API で作った投稿は最新のプロフィールの値。`color1`・`color2` は、プロフィールから作った投稿だけにある |
 | `posts[].category` | 文字列 | 投稿の種類 |
 | `posts[].text` | 文字列 | 本文 |
 | `posts[].postedAt` | 文字列 | 投稿日時 (UTC、ISO 8601) |
@@ -101,7 +109,7 @@ GET /posts?category=<種類>
 
 - ヘッダーは `Content-Type: application/json; charset=utf-8`
 - 日本語はエスケープせずそのまま返す (`ensure_ascii=False`)
-- DynamoDB 内の検索用の属性 `feed` は返さない
+- DynamoDB 内の検索用の属性 `feed` と、`author.userId` (Cognito の `sub`) は返さない
 
 ### エラー
 
@@ -124,8 +132,11 @@ GET /posts?category=<種類>
    - それ以外 → 400 を返して終わる
 3. `ScanIndexForward=False` と `Limit=10` で Query する
    (ソートキー `postedAt` の降順 = 新しい順に並べ、先頭の 10 件だけを読む)
-4. 各項目から、レスポンスに必要なフィールドだけを取り出す (`replies` がなければ空のリスト)
-5. JSON にして 200 で返す。DynamoDB の数値は Python の `Decimal` で返ってくるので、`int` に変換する
+4. 投稿・返信の `author.userId` を集め、`zero-chat-profiles` を `BatchGetItem` でまとめて読む
+   (1 回に 100 人まで。読み切れなかったキー `UnprocessedKeys` が返ってきたら読み直す)
+5. 各項目から、レスポンスに必要なフィールドだけを取り出す (`replies` がなければ空のリスト)。
+   `author` は、プロフィールが見つかればその `name`・`role`・`color1`・`color2` で上書きし、`userId` を消す
+6. JSON にして 200 で返す。DynamoDB の数値は Python の `Decimal` で返ってくるので、`int` に変換する
 
 ## コード
 
@@ -150,11 +161,21 @@ Lambda コンソールの「テスト」タブで使うイベント。
 | `dailyReport` | `{"queryStringParameters": {"category": "dailyReport"}}` | 200、日報だけを新しい順に最大 10 件 |
 | `unknownCategory` | `{"queryStringParameters": {"category": "foo"}}` | 400 |
 
+### 最新のプロフィールで表示する理由
+
+投稿・返信を作るときにも名前・役職・カラーをコピーして保存しているが、それだけではプロフィールを変えても
+過去の投稿・返信が昔のままになる。取得するときに最新のプロフィールで上書きすれば、
+投稿テーブルを書き換えずに、いつも今のプロフィールで表示できる。
+
+- 上書きできるのは `author.userId` がある投稿・返信だけ (作成 API が保存するようになった後に作ったもの)。
+  それより前のものは、保存してある値のまま表示する
+- プロフィールが見つからない人 (プロフィールを消したなど) も、保存してある値のまま表示する
+- 1 回の取得で読むプロフィールは、表示する投稿・返信の人数分だけ (同じ人は 1 回)
+
 ## 制限と今後の課題
 
 - **11 件目以降を取得できない**: 最新の 10 件より古い投稿を取る仕組み (ページング) はまだない。
   リクエストで「どこより古い投稿か」を指定できるようにする予定 (下のメモを参照)
-- **認証なし**: URL を知っていれば誰でも呼べる
 - `_to_json` は数値をすべて `int` にしている。小数を持つ属性を追加するときは変換を見直す
 
 ## メモ: 10 件より古い投稿の取得 (未実装)

@@ -147,6 +147,8 @@ def lambda_handler(event, context):
         return _response(400, {"message": "profile is required"})
     author = {
         "id": AUTHOR_ID,
+        # 誰の返信か (Cognito の sub)。投稿の取得 API が、この番号で最新のプロフィールを読む
+        "userId": user_id,
         "name": profile["name"],
         "role": profile["role"],
         "color1": profile["color1"],
@@ -157,4 +159,6 @@ def lambda_handler(event, context):
     if reply is None:
         return _response(404, {"message": "post not found"})
 
-    return _response(201, {"reply": reply})
+    # userId (sub) はサーバーの中だけで使い、レスポンスには含めない
+    reply_author = {k: v for k, v in reply["author"].items() if k != "userId"}
+    return _response(201, {"reply": {**reply, "author": reply_author}})

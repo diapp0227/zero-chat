@@ -115,6 +115,8 @@ def lambda_handler(event, context):
         "id": _next_post_id(),
         "author": {
             "id": AUTHOR_ID,
+            # 誰の投稿か (Cognito の sub)。投稿の取得 API が、この番号で最新のプロフィールを読む
+            "userId": user_id,
             "name": profile["name"],
             "role": profile["role"],
             "color1": profile["color1"],
@@ -133,4 +135,6 @@ def lambda_handler(event, context):
         ConditionExpression="attribute_not_exists(id)",
     )
 
-    return _response(201, {"post": post})
+    # userId (sub) はサーバーの中だけで使い、レスポンスには含めない
+    author = {k: v for k, v in post["author"].items() if k != "userId"}
+    return _response(201, {"post": {**post, "author": author}})

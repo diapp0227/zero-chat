@@ -82,6 +82,8 @@ Content-Type: application/json
 - 本文の上限は、アプリの投稿画面の入力欄と同じ
 - 番号 (`id`)・投稿日時 (`postedAt`)・投稿した人 (`author`) は送らない。サーバーが決める。
   以前の形の `author` を送っても使わない (他人の名前を名乗れないようにするため)
+- 保存する `author` には、Cognito の `sub` を `userId` として入れる (投稿の取得 API が最新のプロフィールを読むため)。
+  レスポンスには `userId` を含めない
 
 ### レスポンス (201 Created)
 

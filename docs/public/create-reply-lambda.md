@@ -71,6 +71,8 @@ Content-Type: application/json
 | `text` | 文字列 | ○ | 前後の空白を除いて 1 文字以上、**180 文字以下** |
 
 - 返信の番号・返信日時・返信した人 (`author`) は送らない。サーバーが決める
+- 保存する `author` には、Cognito の `sub` を `userId` として入れる (投稿の取得 API が最新のプロフィールを読むため)。
+  レスポンスには `userId` を含めない
 
 ### レスポンス (201 Created)
 

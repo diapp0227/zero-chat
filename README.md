@@ -202,6 +202,7 @@ flutter run -d chrome --web-port 8080 --dart-define-from-file=config/api.json
 | API の JWT 認証 | [api-jwt-auth-aws.md](docs/public/api-jwt-auth-aws.md) |
 | プロフィールの取得・更新 API | [profile-api-aws.md](docs/public/profile-api-aws.md) |
 | 返信 API・投稿の author のカラー | [reply-api-aws.md](docs/public/reply-api-aws.md) |
+| 投稿・返信を最新のプロフィールで表示 | [latest-author-aws.md](docs/public/latest-author-aws.md) |
 
 ### 3. テストする
 
