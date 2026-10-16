@@ -18,7 +18,8 @@ Flutter によるマルチプラットフォーム開発と AWS サーバーレ�
 - 投稿の種類で絞り込む (最新 / お知らせ / 日報 / 自己学習)
 - 投稿への返信を、投稿の下に開いたり閉じたりして表示する
 - 投稿する (種類を選び、本文を 180 文字まで入力して送信する。送信後はタイムラインに反映される)
-- プロフィール (ユーザー名・役職) を設定する。投稿にはこの名前と役職が表示される (今はアプリを閉じると設定が消える)
+- プロフィール (ユーザー名・役職) をサインアップ時に入力し、プロフィール設定画面で変更する。アバターの色 (カラー1・カラー2) も一緒に保存する。
+  サーバーにサインインした人ごとに保存され、投稿にはこの名前と役職が表示される
 - 画面の幅に合わせてレイアウトを切り替える (スマホ: 下のタブバー / PC: 上部のバー)
 
 
@@ -56,7 +57,7 @@ flowchart LR
 
     subgraph AWS
         CF[CloudFront] --> S3[(S3<br/>Web 版のファイル)]
-        APIGW["API Gateway<br/>GET /posts・POST /posts"] --> Lambda[Lambda] --> DDB[(DynamoDB)]
+        APIGW["API Gateway<br/>GET・POST /posts<br/>GET・PUT /profile"] --> Lambda[Lambda] --> DDB[(DynamoDB)]
         Cognito[Cognito<br/>ユーザープール]
         APIGW -.->|トークンを確認| Cognito
     end
@@ -86,13 +87,14 @@ zero-chat/
 │   │   │   ├── auth/                #   サインアップ・サインイン画面と ViewModel・サインイン状態
 │   │   │   ├── home/                #   ホーム (タイムライン) 画面と ViewModel
 │   │   │   ├── compose/             #   投稿画面と ViewModel
-│   │   │   ├── profile/             #   プロフィール設定画面
+│   │   │   ├── profile/             #   プロフィール設定画面・ログイン中の人のプロフィール
 │   │   │   └── placeholder/         #   未実装の画面の仮表示
 │   │   ├── domain/
 │   │   │   └── models/              # Domain layer (投稿・返信・投稿者などのモデル)
 │   │   └── data/                    # Data layer
 │   │       ├── repositories/post/   #   投稿の取得・作成 (サーバー版 / 仮データ版)
 │   │       ├── repositories/auth/   #   サインアップ・サインイン (Cognito 版 / 仮の認証版)
+│   │       ├── repositories/profile/ #  自分のプロフィールの取得・保存 (サーバー版 / 仮データ版)
 │   │       └── services/api/        #   サーバーとの通信
 │   ├── test/                        # テスト (lib/ と同じ構成)
 │   ├── assets/                      # アイコン・ロゴの SVG
@@ -102,7 +104,9 @@ zero-chat/
 │   └── macos/ windows/ linux/
 ├── Lambda/                          # AWS Lambda 関数のコード
 │   ├── zero-chat-get-posts/         #   投稿取得 API (GET /posts)
-│   └── zero-chat-create-post/       #   投稿作成 API (POST /posts)
+│   ├── zero-chat-create-post/       #   投稿作成 API (POST /posts)
+│   ├── zero-chat-get-profile/       #   プロフィール取得 API (GET /profile)
+│   └── zero-chat-update-profile/    #   プロフィール更新 API (PUT /profile)
 ├── docs/public/                     # 構築手順・仕様のドキュメント
 └── flutter-architecture.md          # アプリの設計方針
 ```
@@ -195,6 +199,7 @@ flutter run -d chrome --web-port 8080 --dart-define-from-file=config/api.json
 | 投稿の作成 API | [create-post-api-aws.md](docs/public/create-post-api-aws.md) |
 | サインアップ・サインイン (Cognito) | [cognito-auth-aws.md](docs/public/cognito-auth-aws.md) |
 | API の JWT 認証 | [api-jwt-auth-aws.md](docs/public/api-jwt-auth-aws.md) |
+| プロフィールの取得・更新 API | [profile-api-aws.md](docs/public/profile-api-aws.md) |
 
 ### 3. テストする
 
