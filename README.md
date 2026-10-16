@@ -14,7 +14,7 @@ Flutter によるマルチプラットフォーム開発と AWS サーバーレ�
 - メールアドレスとパスワードでサインアップ (メールで届く 6 桁の確認コードで確認) ・サインインする。
   前回のサインインは、次にアプリを開いたときも残る
 - 投稿の読み書きはサインインした人だけができる (API がトークンを確かめる)
-- タイムラインで投稿を新しい順に表示する (1 回の読み込みで最新 10 件)
+- タイムラインで投稿を新しい順に表示する。下までスクロールすると、続きの 10 件を読み込む
 - 投稿の種類で絞り込む (最新 / お知らせ / 日報 / 自己学習)
 - 投稿に返信する。返信は投稿の下に開いたり閉じたりして表示する
 - 投稿する (種類を選び、本文を 180 文字まで入力して送信する。送信後はタイムラインに反映される)
@@ -203,6 +203,7 @@ flutter run -d chrome --web-port 8080 --dart-define-from-file=config/api.json
 | プロフィールの取得・更新 API | [profile-api-aws.md](docs/public/profile-api-aws.md) |
 | 返信 API・投稿の author のカラー | [reply-api-aws.md](docs/public/reply-api-aws.md) |
 | 投稿・返信を最新のプロフィールで表示 | [latest-author-aws.md](docs/public/latest-author-aws.md) |
+| タイムラインのページング | [paging-aws.md](docs/public/paging-aws.md) |
 
 ### 3. テストする
 

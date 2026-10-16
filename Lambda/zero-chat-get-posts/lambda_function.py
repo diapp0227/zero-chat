@@ -1,3 +1,5 @@
+import base64
+import binascii
 import json
 import os
 from decimal import Decimal
@@ -63,16 +65,47 @@ def _to_author(author, profiles):
     return {k: v for k, v in {**author, **latest}.items() if k != "userId"}
 
 
+def _encode_cursor(last_key):
+    """DynamoDB の LastEvaluatedKey を、URL に入れられる文字列 (nextCursor) にする"""
+    if not last_key:
+        return None
+    raw = json.dumps(last_key, default=_to_json, separators=(",", ":"))
+    return base64.urlsafe_b64encode(raw.encode("utf-8")).decode("ascii").rstrip("=")
+
+
+def _decode_cursor(cursor, index_key):
+    """cursor を Query の ExclusiveStartKey に戻す。読めないときや、別の一覧の目印なら None を返す
+
+    [index_key] は今の一覧のインデックスのキー (例: {"feed": "ALL"})。
+    手で作った目印を DynamoDB に渡してエラー (500) にならないよう、形を確かめる
+    """
+    try:
+        padded = cursor + "=" * (-len(cursor) % 4)
+        key = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")))
+    except (ValueError, UnicodeError, binascii.Error):
+        return None
+    expected = {"id", "postedAt", *index_key}
+    if not isinstance(key, dict) or set(key) != expected:
+        return None
+    if not isinstance(key["id"], int) or not isinstance(key["postedAt"], str):
+        return None
+    if any(key[name] != value for name, value in index_key.items()):
+        return None
+    return key
+
+
 def lambda_handler(event, context):
     params = event.get("queryStringParameters") or {}
     category = params.get("category")
 
     if category is None:
+        index_key = {"feed": "ALL"}
         query = {
             "IndexName": "feed-postedAt-index",
             "KeyConditionExpression": Key("feed").eq("ALL"),
         }
     elif category in CATEGORIES:
+        index_key = {"category": category}
         query = {
             "IndexName": "category-postedAt-index",
             "KeyConditionExpression": Key("category").eq(category),
@@ -80,8 +113,17 @@ def lambda_handler(event, context):
     else:
         return _response(400, {"message": f"unknown category: {category}"})
 
-    # 新しい順 (postedAt の降順) に、先頭の PAGE_SIZE 件だけ読む
-    items = table.query(ScanIndexForward=False, Limit=PAGE_SIZE, **query)["Items"]
+    # cursor があれば、前回のページの続き (それより古い投稿) から読む
+    cursor = params.get("cursor")
+    if cursor is not None:
+        start_key = _decode_cursor(cursor, index_key)
+        if start_key is None:
+            return _response(400, {"message": "invalid cursor"})
+        query["ExclusiveStartKey"] = start_key
+
+    # 新しい順 (postedAt の降順) に、PAGE_SIZE 件だけ読む
+    result = table.query(ScanIndexForward=False, Limit=PAGE_SIZE, **query)
+    items = result["Items"]
 
     # 表示する投稿・返信の人のプロフィールを、まとめて 1 回 (100 人ごと) で読む
     user_ids = {
@@ -106,4 +148,6 @@ def lambda_handler(event, context):
         }
         for item in items
     ]
-    return _response(200, {"posts": posts})
+    # 続きがあるときだけ、次のページの目印を返す (最後のページなら null)
+    next_cursor = _encode_cursor(result.get("LastEvaluatedKey"))
+    return _response(200, {"posts": posts, "nextCursor": next_cursor})
