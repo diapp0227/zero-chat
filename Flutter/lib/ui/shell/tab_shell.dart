@@ -8,14 +8,17 @@ import 'bottom_nav_bar.dart';
 import 'desktop_top_bar.dart';
 import 'mobile_compose_button.dart';
 import 'tab_nav_item.dart';
+import '../core/l10n.dart';
 
+/// タブの一覧 (名前は表示の言語 [l10n] に合わせる)
+///
 /// タブの並び順は router.dart の branches と一致させる
-const tabNavItems = [
-  TabNavItem(label: 'ホーム', icon: AppIconName.home),
-  TabNavItem(label: '見つける', icon: AppIconName.search),
-  TabNavItem(label: '通知', icon: AppIconName.bell, badge: '3'),
-  TabNavItem(label: '組織', icon: AppIconName.organization),
-  TabNavItem(label: 'メッセージ', icon: AppIconName.mail),
+List<TabNavItem> tabNavItems(AppLocalizations l10n) => [
+  TabNavItem(label: l10n.tabHome, icon: AppIconName.home),
+  TabNavItem(label: l10n.tabDiscover, icon: AppIconName.search),
+  TabNavItem(label: l10n.tabNotifications, icon: AppIconName.bell, badge: '3'),
+  TabNavItem(label: l10n.tabOrganization, icon: AppIconName.organization),
+  TabNavItem(label: l10n.tabMessages, icon: AppIconName.mail),
 ];
 
 /// タブ切り替えの外枠
@@ -50,7 +53,7 @@ class TabShell extends StatelessWidget {
         body: Column(
           children: [
             DesktopTopBar(
-              items: tabNavItems,
+              items: tabNavItems(context.l10n),
               selectedIndex: navigationShell.currentIndex,
               onSelected: _onSelected,
               onCompose: () => _onCompose(context),
@@ -75,7 +78,7 @@ class TabShell extends StatelessWidget {
         onPressed: () => _onCompose(context),
       ),
       bottomNavigationBar: BottomNavBar(
-        items: tabNavItems,
+        items: tabNavItems(context.l10n),
         selectedIndex: navigationShell.currentIndex,
         onSelected: _onSelected,
       ),

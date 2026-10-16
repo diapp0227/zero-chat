@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_icon.dart';
 import '../../core/app_logo.dart';
+import '../../core/l10n.dart';
 
 /// 見出しの明朝体。端末に無い場合は下の候補から順に探す
 const authSerifFontFamily = 'Georgia';
@@ -68,7 +69,7 @@ class AuthBrandPanel extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    '共有から、\n仕事がつながる。',
+                    context.l10n.brandHeadline,
                     style: TextStyle(
                       color: AppColors.authBrandText,
                       fontFamily: authSerifFontFamily,
@@ -82,9 +83,9 @@ class AuthBrandPanel extends StatelessWidget {
                   const SizedBox(height: 18),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 330),
-                    child: const Text(
-                      '日々の気づきや学びを気軽に共有して、チームのコミュニケーションをひとつ先へ。',
-                      style: TextStyle(
+                    child: Text(
+                      context.l10n.brandBody,
+                      style: const TextStyle(
                         color: AppColors.authBrandBody,
                         fontSize: 12,
                         height: 1.9,
@@ -131,19 +132,19 @@ class _BrandNote extends StatelessWidget {
               color: AppColors.logoMarkForeground,
             ),
           ),
-          const Expanded(
+          Expanded(
             child: Text.rich(
               TextSpan(
                 children: [
                   TextSpan(
-                    text: '小さな共有を、チームの力に。',
-                    style: TextStyle(
+                    text: context.l10n.brandNoteTitle,
+                    style: const TextStyle(
                       color: AppColors.authBrandText,
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  TextSpan(text: '\nZeroなら必要な情報が自然と集まります。'),
+                  TextSpan(text: '\n${context.l10n.brandNoteBody}'),
                 ],
               ),
               style: TextStyle(

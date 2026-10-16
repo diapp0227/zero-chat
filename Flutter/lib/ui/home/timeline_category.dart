@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/models/post_category.dart';
+import '../core/l10n.dart';
 
 /// タイムラインの種類 (タブで切り替える)
 ///
@@ -17,7 +18,8 @@ enum TimelineCategory {
   final PostCategory? postCategory;
 
   /// タブに表示する名前 (例: 最新、日報)
-  String get label => postCategory?.label ?? '最新';
+  String label(AppLocalizations l10n) =>
+      postCategory?.label(l10n) ?? l10n.timelineLatest;
 }
 
 /// 選択中のタイムラインのカテゴリ

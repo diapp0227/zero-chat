@@ -9,6 +9,7 @@ import 'timeline_state.dart';
 import 'widgets/post_cell.dart';
 import 'widgets/timeline_category_tabs.dart';
 import 'widgets/timeline_header.dart';
+import '../core/l10n.dart';
 
 /// ホーム画面 (タイムライン)
 ///
@@ -54,7 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // 取得済み (カテゴリを切り替えて読み込み中も、前の投稿を出しておく)
                   AsyncValue(value: final timeline?) =>
                     timeline.posts.isEmpty
-                        ? const _TimelineMessage(message: '投稿はまだありません')
+                        ? _TimelineMessage(message: context.l10n.timelineEmpty)
                         : _TimelineList(
                             timeline: timeline,
                             onLoadMore: () => ref
@@ -62,7 +63,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 .loadMore(),
                           ),
                   AsyncValue(error: _?) => _TimelineMessage(
-                    message: '投稿を読み込めませんでした',
+                    message: context.l10n.timelineLoadFailed,
                     onRetry: () =>
                         ref.read(homeViewModelProvider.notifier).refresh(),
                   ),
@@ -182,13 +183,16 @@ class _TimelineFooterState extends State<_TimelineFooter> {
                   mainAxisSize: MainAxisSize.min,
                   spacing: 4,
                   children: [
-                    const Text(
-                      '読み込めませんでした',
-                      style: TextStyle(color: AppColors.postMeta, fontSize: 12),
+                    Text(
+                      context.l10n.timelineLoadMoreFailed,
+                      style: const TextStyle(
+                        color: AppColors.postMeta,
+                        fontSize: 12,
+                      ),
                     ),
                     TextButton(
                       onPressed: widget.onLoadMore,
-                      child: const Text('再読み込み'),
+                      child: Text(context.l10n.reload),
                     ),
                   ],
                 )
@@ -224,7 +228,7 @@ class _TimelineMessage extends StatelessWidget {
             style: const TextStyle(color: AppColors.postMeta, fontSize: 13),
           ),
           if (onRetry case final onRetry?)
-            TextButton(onPressed: onRetry, child: const Text('再読み込み')),
+            TextButton(onPressed: onRetry, child: Text(context.l10n.reload)),
         ],
       ),
     );

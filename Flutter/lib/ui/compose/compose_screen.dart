@@ -4,6 +4,7 @@ import '../../domain/models/post_category.dart';
 import '../core/sheet.dart';
 import 'widgets/compose_editor.dart';
 import 'widgets/post_category_picker.dart';
+import '../core/l10n.dart';
 
 /// 投稿画面を開く
 ///
@@ -13,7 +14,7 @@ Future<void> showComposeScreen(BuildContext context) {
   return showSheet(
     context,
     maxWidth: 560,
-    barrierLabel: '投稿画面を閉じる',
+    barrierLabel: context.l10n.composeBarrier,
     builder: (context, fullScreen) => ComposeScreen(fullScreen: fullScreen),
   );
 }

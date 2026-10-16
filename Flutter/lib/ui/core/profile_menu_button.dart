@@ -7,21 +7,25 @@ import '../profile/profile_settings_screen.dart';
 import 'app_colors.dart';
 import 'app_icon.dart';
 import 'avatar.dart';
+import 'l10n.dart';
 
 /// プロフィールメニューの項目
 enum ProfileMenuAction {
-  settings('プロフィール設定', AppIconName.settings),
-  // history('利用履歴', AppIconName.history),
-  // help('ヘルプ', AppIconName.help),
-  logout('ログアウト', AppIconName.logout);
+  settings(AppIconName.settings),
+  // history(AppIconName.history),
+  // help(AppIconName.help),
+  logout(AppIconName.logout);
 
-  const ProfileMenuAction(this.label, this.icon);
-
-  /// メニューに表示する名前
-  final String label;
+  const ProfileMenuAction(this.icon);
 
   /// 名前の左に出すアイコン
   final AppIconName icon;
+
+  /// メニューに表示する名前
+  String label(AppLocalizations l10n) => switch (this) {
+    ProfileMenuAction.settings => l10n.menuProfileSettings,
+    ProfileMenuAction.logout => l10n.menuLogout,
+  };
 }
 
 /// アバター + ▼ のボタン。押すとプロフィールメニューを開く
@@ -92,7 +96,7 @@ class ProfileMenuButton extends ConsumerWidget {
         return Semantics(
           button: true,
           expanded: controller.isOpen,
-          label: 'プロフィールメニュー',
+          label: context.l10n.profileMenu,
           excludeSemantics: true,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -172,7 +176,7 @@ class _ProfileMenuItem extends StatelessWidget {
         overlayColor: const WidgetStatePropertyAll(Colors.transparent),
         textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 11)),
       ),
-      child: Text(action.label),
+      child: Text(action.label(context.l10n)),
     );
   }
 }

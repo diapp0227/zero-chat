@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'data/repositories/auth/cognito_auth_repository.dart';
+import 'data/services/preferences/app_preferences.dart';
+import 'data/services/preferences/shared_app_preferences.dart';
 import 'ui/auth/auth_session.dart';
 
 Future<void> main() async {
@@ -13,8 +15,13 @@ Future<void> main() async {
     await CognitoAuthRepository.configure();
   }
 
+  // 端末に保存した設定 (表示の言語など) を読み込んでおく
+  final preferences = await SharedAppPreferences.create();
+
   // 前回のサインインが端末に残っていれば、サインイン画面を飛ばしてホームを開く
-  final container = ProviderContainer();
+  final container = ProviderContainer(
+    overrides: [appPreferencesProvider.overrideWithValue(preferences)],
+  );
   await container.read(authSessionProvider.notifier).restore();
 
   runApp(UncontrolledProviderScope(container: container, child: const App()));

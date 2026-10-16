@@ -45,7 +45,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/discover',
                 builder: (context, state) =>
-                    const PlaceholderScreen(title: '見つける'),
+                    const PlaceholderScreen(tabIndex: 1),
               ),
             ],
           ),
@@ -54,7 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/notifications',
                 builder: (context, state) =>
-                    const PlaceholderScreen(title: '通知'),
+                    const PlaceholderScreen(tabIndex: 2),
               ),
             ],
           ),
@@ -63,7 +63,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/organization',
                 builder: (context, state) =>
-                    const PlaceholderScreen(title: '組織'),
+                    const PlaceholderScreen(tabIndex: 3),
               ),
             ],
           ),
@@ -72,7 +72,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/messages',
                 builder: (context, state) =>
-                    const PlaceholderScreen(title: 'メッセージ'),
+                    const PlaceholderScreen(tabIndex: 4),
               ),
             ],
           ),

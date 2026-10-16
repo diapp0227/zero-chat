@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/app_colors.dart';
 import '../core/app_icon.dart';
+import '../core/l10n.dart';
 
 /// スマホ・タブレット (compact / medium 幅) の右下に浮かぶ ＋ ボタン。押すと投稿画面を開く
 ///
@@ -27,7 +28,7 @@ class MobileComposeButton extends StatelessWidget {
       ),
       child: IconButton(
         onPressed: onPressed,
-        tooltip: '新しい投稿',
+        tooltip: context.l10n.newPost,
         icon: const AppIcon(AppIconName.plus, size: 24, color: Colors.white),
         style: ButtonStyle(
           fixedSize: const WidgetStatePropertyAll(Size.square(50)),

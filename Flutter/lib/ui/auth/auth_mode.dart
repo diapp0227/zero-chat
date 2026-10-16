@@ -1,10 +1,13 @@
+import '../core/l10n.dart';
+
 /// サインイン画面で選べる操作
 enum AuthMode {
-  signUp('サインアップ'),
-  signIn('サインイン');
-
-  const AuthMode(this.label);
+  signUp,
+  signIn;
 
   /// 切り替えボタンに表示する名前
-  final String label;
+  String label(AppLocalizations l10n) => switch (this) {
+    AuthMode.signUp => l10n.authSignUp,
+    AuthMode.signIn => l10n.authSignIn,
+  };
 }

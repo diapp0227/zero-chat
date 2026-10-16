@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zero_chat/data/repositories/post/fake_post_repository.dart';
+import 'package:zero_chat/l10n/app_localizations.dart';
 import 'package:zero_chat/data/repositories/post/post_repository_provider.dart';
 import 'package:zero_chat/data/repositories/profile/fake_profile_repository.dart';
 import 'package:zero_chat/data/repositories/profile/profile_repository_provider.dart';
@@ -36,6 +37,8 @@ void main() {
         ProviderScope(
           overrides: [profileRepositoryProvider.overrideWithValue(repository)],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Builder(
               builder: (context) => TextButton(
                 onPressed: () => showProfileSettingsScreen(context),
@@ -85,6 +88,8 @@ void main() {
             postRepositoryProvider.overrideWithValue(postRepository),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Consumer(
               builder: (context, ref, _) {
                 // タイムラインが表示されている状態にする

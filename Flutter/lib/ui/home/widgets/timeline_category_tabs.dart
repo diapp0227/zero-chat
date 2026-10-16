@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_icon.dart';
 import '../timeline_category.dart';
+import '../../core/l10n.dart';
 
 /// タイムラインのタブ (最新 / お知らせ / 日報 / 自己学習) とフィルターボタンが並ぶ白い帯
 ///
@@ -129,7 +130,7 @@ class _TimelineCategoryTabButton extends StatelessWidget {
                 // 帯の下端から 1px はみ出した位置が基準なので、下の余白は 13 + 1
                 padding: const EdgeInsets.fromLTRB(5, 0, 5, 14),
                 child: Text(
-                  category.label,
+                  category.label(context.l10n),
                   style: TextStyle(
                     color: selected ? AppColors.text : AppColors.tabInactive,
                     fontSize: 12,
@@ -172,7 +173,7 @@ class _FilterButton extends StatelessWidget {
         states.contains(WidgetState.focused);
 
     return Tooltip(
-      message: '投稿をフィルター',
+      message: context.l10n.filterPosts,
       child: TextButton(
         // フィルターの中身は未定のため、押しても何もしない
         onPressed: () {},

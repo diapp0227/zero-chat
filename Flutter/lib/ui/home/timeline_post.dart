@@ -1,4 +1,5 @@
 import 'package:flutter/painting.dart';
+import '../../domain/models/post_category.dart';
 
 /// 投稿セルに表示する内容
 ///
@@ -11,7 +12,7 @@ class TimelinePost {
     required this.authorRole,
     required this.avatarColors,
     required this.postedAt,
-    required this.title,
+    required this.category,
     required this.text,
     this.image,
     this.replies = const [],
@@ -32,8 +33,8 @@ class TimelinePost {
   /// 投稿日時 (画面には「12分」「昨日」などの経過時間に変換して出す)
   final DateTime postedAt;
 
-  /// 本文の上に太字で出すタイトル (例: 日報)
-  final String title;
+  /// 投稿の種類。本文の上に太字のタイトルとして、表示の言語の名前で出す (例: 日報)
+  final PostCategory category;
 
   /// 本文
   final String text;

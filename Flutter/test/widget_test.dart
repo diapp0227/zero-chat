@@ -3,6 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zero_chat/app.dart';
+import 'package:zero_chat/ui/auth/widgets/auth_language_select.dart';
+import 'package:zero_chat/domain/models/app_language.dart';
+import 'package:zero_chat/data/services/preferences/in_memory_app_preferences.dart';
+import 'package:zero_chat/data/services/preferences/app_preferences.dart';
+import 'package:zero_chat/domain/models/post_category.dart';
+import 'package:zero_chat/l10n/app_localizations.dart';
 import 'package:zero_chat/data/repositories/post/post_repository_provider.dart';
 import 'package:zero_chat/data/repositories/post/fake_post_repository.dart';
 import 'package:zero_chat/data/repositories/auth/auth_repository_provider.dart';
@@ -134,7 +140,9 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(TimelineCategoryTabs),
-          matching: find.text(category.label),
+          matching: find.text(
+            category.label(lookupAppLocalizations(const Locale('ja'))),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -178,12 +186,14 @@ void main() {
         authorRole: 'エンジニア',
         avatarColors: (const Color(0xFF000000), const Color(0xFFFFFFFF)),
         postedAt: DateTime.now(),
-        title: 'タイトル',
+        category: PostCategory.dailyReport,
         text: '本文',
       );
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: PostCell(post: post, showActions: true)),
         ),
       );
@@ -336,6 +346,35 @@ void main() {
       ).read(currentProfileProvider);
       expect(profile.name, 'ああああ');
       expect(profile.role, 'デザイナー');
+    });
+
+    testWidgets('言語設定で英語を選ぶと、画面が英語になる', (WidgetTester tester) async {
+      setScreenSize(tester, const Size(390, 844));
+      final preferences = InMemoryAppPreferences();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [appPreferencesProvider.overrideWithValue(preferences)],
+          child: const App(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('アカウントを作成'), findsWidgets);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AuthLanguageSelect),
+          matching: find.text('日本語'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('English').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Create an account'), findsOneWidget);
+      expect(find.text('Sign in'), findsOneWidget);
+      // 次に開いたときのために、端末に保存している
+      expect(preferences.language, AppLanguage.en);
     });
 
     testWidgets('サインインするとホームへ進み、ログアウトで戻る', (WidgetTester tester) async {

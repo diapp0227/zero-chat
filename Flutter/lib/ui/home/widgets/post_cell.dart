@@ -8,6 +8,7 @@ import '../../core/avatar.dart';
 import '../../core/elapsed_time_label.dart';
 import '../../reply/reply_screen.dart';
 import '../timeline_post.dart';
+import '../../core/l10n.dart';
 
 /// タイムラインの投稿1件分
 ///
@@ -60,7 +61,7 @@ class _PostCellState extends State<PostCell> {
           ),
           const SizedBox(height: 16),
           Text(
-            post.title,
+            post.category.label(context.l10n),
             style: const TextStyle(
               color: AppColors.text,
               fontSize: 15,
@@ -129,8 +130,8 @@ class _PostHeader extends StatelessWidget {
         Expanded(
           child: _AuthorInfo(
             name: post.authorName,
-            timeLabel: elapsedTimeLabel(post.postedAt),
-            role: post.authorRole,
+            timeLabel: elapsedTimeLabel(post.postedAt, context.l10n),
+            role: roleLabel(context.l10n, post.authorRole),
             nameSize: 13,
             timeSize: 10,
             gap: 6,
@@ -143,14 +144,14 @@ class _PostHeader extends StatelessWidget {
               _PostActionButton(
                 icon: saved ? AppIconName.bookmarkFilled : AppIconName.bookmark,
                 iconSize: 19,
-                label: saved ? '保存を解除' : '保存',
+                label: saved ? context.l10n.postUnsave : context.l10n.postSave,
                 color: saved ? AppColors.postSaved : AppColors.postAction,
                 onPressed: onToggleSaved,
               ),
               _PostActionButton(
                 icon: AppIconName.more,
                 iconSize: 21,
-                label: 'その他のメニュー',
+                label: context.l10n.postMoreMenu,
                 color: AppColors.postAction,
                 // メニューの中身は未定のため、押しても何もしない
                 onPressed: () {},
@@ -336,11 +337,11 @@ class _CollapsibleTextState extends State<_CollapsibleText> {
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => setState(() => _expanded = true),
-                child: const MouseRegion(
+                child: MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: Text(
-                    'もっと見る',
-                    style: TextStyle(
+                    context.l10n.postShowMore,
+                    style: const TextStyle(
                       color: AppColors.postLink,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -442,20 +443,23 @@ class _ReplySummary extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          child: const MouseRegion(
+          child: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               spacing: 7,
               children: [
-                AppIcon(
+                const AppIcon(
                   AppIconName.comment,
                   size: 18,
                   color: AppColors.replySummary,
                 ),
                 Text(
-                  '返信する',
-                  style: TextStyle(color: AppColors.replySummary, fontSize: 10),
+                  context.l10n.postReply,
+                  style: const TextStyle(
+                    color: AppColors.replySummary,
+                    fontSize: 10,
+                  ),
                 ),
               ],
             ),
@@ -500,7 +504,7 @@ class _RepliesToggle extends StatelessWidget {
               spacing: 4,
               children: [
                 Text(
-                  '$replyCount件の返信',
+                  context.l10n.postReplyCount(replyCount),
                   style: const TextStyle(
                     color: AppColors.postLink,
                     fontSize: 10,
@@ -576,8 +580,8 @@ class _ReplyItem extends StatelessWidget {
             children: [
               _AuthorInfo(
                 name: reply.authorName,
-                timeLabel: elapsedTimeLabel(reply.repliedAt),
-                role: reply.authorRole,
+                timeLabel: elapsedTimeLabel(reply.repliedAt, context.l10n),
+                role: roleLabel(context.l10n, reply.authorRole),
                 nameSize: 11,
                 timeSize: 9,
                 gap: 5,

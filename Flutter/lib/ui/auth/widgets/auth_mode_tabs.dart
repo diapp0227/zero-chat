@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../auth_mode.dart';
+import '../../core/l10n.dart';
 
 /// 「サインアップ」「サインイン」を切り替えるボタン (グレーの帯の中に2つ並ぶ)
 class AuthModeTabs extends StatelessWidget {
@@ -31,7 +32,7 @@ class AuthModeTabs extends StatelessWidget {
           for (final mode in AuthMode.values)
             Expanded(
               child: _AuthModeTab(
-                label: mode.label,
+                label: mode.label(context.l10n),
                 selected: mode == selected,
                 onPressed: () => onSelected(mode),
               ),

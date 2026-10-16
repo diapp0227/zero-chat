@@ -1,0 +1,5 @@
+# 翻訳のクラス (AppLocalizations) を作る設定。flutter pub get / flutter run のときに自動で作られる
+arb-dir: lib/l10n
+template-arb-file: app_ja.arb
+output-localization-file: app_localizations.dart
+nullable-getter: false

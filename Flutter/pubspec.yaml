@@ -34,6 +34,9 @@ dependencies:
   http: ^1.6.0
   amplify_flutter: ^2.11.0
   amplify_auth_cognito: ^2.11.0
+  flutter_localizations:
+    sdk: flutter
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -44,6 +47,9 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 flutter:
+  # lib/l10n/*.arb から翻訳のクラス (AppLocalizations) を作る
+  generate: true
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

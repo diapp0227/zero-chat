@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../core/app_icon.dart';
 import '../post_category_option.dart';
 import '../../core/sheet_header.dart';
+import '../../core/l10n.dart';
 
 /// 投稿画面の1ステップ目。投稿の種類 (お知らせ・日報・自己学習) を選ぶ
 class PostCategoryPicker extends StatelessWidget {
@@ -31,8 +32,8 @@ class PostCategoryPicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SheetHeader(
-          title: '投稿の種類',
-          leadingLabel: 'キャンセル',
+          title: context.l10n.composeCategoryTitle,
+          leadingLabel: context.l10n.cancel,
           onLeadingPressed: onCancel,
         ),
         Flexible(
@@ -43,10 +44,10 @@ class PostCategoryPicker extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  '何を共有しますか？',
+                Text(
+                  context.l10n.composeCategoryHeading,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.text,
                     fontSize: 19,
                     fontFamily: 'Georgia',
@@ -54,10 +55,10 @@ class PostCategoryPicker extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  '投稿に合うタイトルを選んでください',
+                Text(
+                  context.l10n.composeCategoryDescription,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.sheetSubtitle,
                     fontSize: 11,
                   ),
@@ -160,7 +161,7 @@ class _CategoryOptionState extends State<_CategoryOption> {
                     spacing: 4,
                     children: [
                       Text(
-                        category.label,
+                        category.label(context.l10n),
                         style: const TextStyle(
                           color: AppColors.categoryOptionText,
                           fontSize: 13,
@@ -168,7 +169,7 @@ class _CategoryOptionState extends State<_CategoryOption> {
                         ),
                       ),
                       Text(
-                        category.description,
+                        category.description(context.l10n),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(

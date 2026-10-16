@@ -90,7 +90,7 @@ class HomeViewModel extends AsyncNotifier<TimelineState> {
     avatarColors: post.author.avatarColors ?? avatarColorsFor(post.author.id),
     postedAt: post.postedAt,
     // 投稿の種類を、本文の上のタイトルとして表示する
-    title: post.category.label,
+    category: post.category,
     text: post.text,
     replies: post.replies.map(_toTimelineReply).toList(),
   );

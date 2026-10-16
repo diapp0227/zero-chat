@@ -214,6 +214,7 @@ class AuthSelectField extends StatefulWidget {
     required this.icon,
     required this.value,
     required this.options,
+    required this.labelOf,
     required this.onChanged,
   });
 
@@ -228,6 +229,9 @@ class AuthSelectField extends StatefulWidget {
 
   /// 選べる候補の一覧
   final List<String> options;
+
+  /// 候補の、画面に出す名前
+  final String Function(String option) labelOf;
 
   /// 候補が選ばれたときの処理
   final ValueChanged<String> onChanged;
@@ -285,7 +289,10 @@ class _AuthSelectFieldState extends State<AuthSelectField> {
                     ),
                     items: [
                       for (final option in widget.options)
-                        DropdownMenuItem(value: option, child: Text(option)),
+                        DropdownMenuItem(
+                          value: option,
+                          child: Text(widget.labelOf(option)),
+                        ),
                     ],
                     onChanged: (value) {
                       if (value != null) widget.onChanged(value);

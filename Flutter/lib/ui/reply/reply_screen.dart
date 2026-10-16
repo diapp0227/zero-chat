@@ -9,6 +9,7 @@ import '../core/sheet_header.dart';
 import '../home/timeline_post.dart';
 import '../profile/current_profile.dart';
 import 'reply_view_model.dart';
+import '../core/l10n.dart';
 
 /// [post] への返信画面を開く
 ///
@@ -18,7 +19,7 @@ Future<void> showReplyScreen(BuildContext context, TimelinePost post) {
   return showSheet(
     context,
     maxWidth: 560,
-    barrierLabel: '返信画面を閉じる',
+    barrierLabel: context.l10n.replyBarrier,
     builder: (context, fullScreen) =>
         ReplyScreen(post: post, fullScreen: fullScreen),
   );
@@ -106,9 +107,9 @@ class _ReplyScreenState extends ConsumerState<ReplyScreen> {
                   fontSize: fullScreen ? 16 : 15,
                   height: 1.7,
                 ),
-                decoration: const InputDecoration(
-                  hintText: '返信内容を入力...',
-                  hintStyle: TextStyle(color: AppColors.inputHint),
+                decoration: InputDecoration(
+                  hintText: context.l10n.replyHint,
+                  hintStyle: const TextStyle(color: AppColors.inputHint),
                   border: InputBorder.none,
                   isCollapsed: true,
                   contentPadding: EdgeInsets.symmetric(vertical: 7),
@@ -127,17 +128,19 @@ class _ReplyScreenState extends ConsumerState<ReplyScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SheetHeader(
-          title: '返信する',
-          leadingLabel: 'キャンセル',
+          title: context.l10n.replyTitle,
+          leadingLabel: context.l10n.cancel,
           onLeadingPressed: () => Navigator.of(context).pop(),
           trailing: SheetPrimaryButton(
-            label: sending ? '返信中…' : '返信する',
+            label: sending
+                ? context.l10n.replySending
+                : context.l10n.replySubmit,
             onPressed: canSubmit ? _onSubmit : null,
           ),
         ),
         if (submission.hasError)
-          const ComposeNotice(
-            message: '返信できませんでした。時間をおいて、もう一度お試しください',
+          ComposeNotice(
+            message: context.l10n.replyFailed,
             foregroundColor: AppColors.composeErrorText,
             backgroundColor: AppColors.composeErrorBackground,
           ),
@@ -171,6 +174,10 @@ class _ReplyingTo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 「{name}さんの投稿に返信」の {name} の位置で分けて、名前だけ太字にする
+    const marker = '\u0000';
+    final [before, after] = context.l10n.replyingTo(marker).split(marker);
+
     return Container(
       margin: EdgeInsets.fromLTRB(
         fullScreen ? 18 : 22,
@@ -195,6 +202,7 @@ class _ReplyingTo extends StatelessWidget {
             child: Text.rich(
               TextSpan(
                 children: [
+                  TextSpan(text: before),
                   TextSpan(
                     text: post.authorName,
                     style: const TextStyle(
@@ -202,7 +210,7 @@ class _ReplyingTo extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const TextSpan(text: 'さんの投稿に返信'),
+                  TextSpan(text: after),
                 ],
               ),
               maxLines: 1,

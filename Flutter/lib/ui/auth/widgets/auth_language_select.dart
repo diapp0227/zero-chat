@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../../core/app_icon.dart';
-import '../../core/app_language.dart';
+import '../../../domain/models/app_language.dart';
+import '../../core/l10n.dart';
 
 /// サインアップ・サインインの切り替えの下の「言語設定」。左に項目名、右に押すと候補が開く言語
 class AuthLanguageSelect extends StatelessWidget {
@@ -32,9 +33,9 @@ class AuthLanguageSelect extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         spacing: 14,
         children: [
-          const Text(
-            '言語設定',
-            style: TextStyle(
+          Text(
+            context.l10n.authLanguageSetting,
+            style: const TextStyle(
               color: AppColors.authLanguageLabel,
               fontSize: 9,
               fontWeight: FontWeight.w700,
@@ -68,7 +69,7 @@ class AuthLanguageSelect extends StatelessWidget {
                   for (final language in AppLanguage.values)
                     DropdownMenuItem(
                       value: language,
-                      child: Text(language.label),
+                      child: Text(languageName(language)),
                     ),
                 ],
                 onChanged: (language) {

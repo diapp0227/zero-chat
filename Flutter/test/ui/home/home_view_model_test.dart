@@ -105,8 +105,8 @@ void main() {
     expect(post.authorRole, 'デザイナー');
     expect(post.avatarColors, avatarColorsFor(2));
     expect(post.postedAt, postedAt);
-    // 投稿の種類がタイトルになる
-    expect(post.title, '日報');
+    // 投稿の種類がタイトルになる (名前は画面で表示の言語に合わせる)
+    expect(post.category, PostCategory.dailyReport);
     expect(post.text, '日報の本文');
     expect(post.replies.single.id, 11);
     expect(post.replies.single.text, '返信の本文');

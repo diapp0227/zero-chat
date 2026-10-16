@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
+import '../../core/l10n.dart';
 
 /// アバターのカラーを、決まったグラデーションの組み合わせ ([AppColors.avatarGradients]) から選ぶ欄
 ///
@@ -29,7 +30,7 @@ class ProfileColorSelect extends StatelessWidget {
         for (var i = 0; i < options.length; i++)
           _ColorOption(
             colors: options[i],
-            label: 'カラー${i + 1}',
+            label: context.l10n.colorOption(i + 1),
             selected: options[i] == value,
             onTap: () => onChanged(options[i]),
           ),

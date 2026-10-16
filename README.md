@@ -21,6 +21,8 @@ Flutter によるマルチプラットフォーム開発と AWS サーバーレ�
 - プロフィール (ユーザー名・役職) をサインアップ時に入力し、プロフィール設定画面で変更する。アバターの色 (カラー1・カラー2) も一緒に保存する。
   サーバーにサインインした人ごとに保存され、投稿にはこの名前と役職が表示される
 - 画面の幅に合わせてレイアウトを切り替える (スマホ: 下のタブバー / PC: 上部のバー)
+- 表示の言語を日本語・英語から選ぶ (サインイン画面の「言語設定」・プロフィール設定画面)。
+  選んだ言語は端末に保存し、初めて開いたときは端末の言語に合わせる
 
 
 ### 技術スタック
@@ -81,6 +83,7 @@ zero-chat/
 │   │   ├── main.dart                # 起動処理 (Amplify の準備・前回のサインインの確認・ProviderScope)
 │   │   ├── app.dart                 # MaterialApp.router
 │   │   ├── routing/                 # 画面遷移 (go_router)
+│   │   ├── l10n/                    # 翻訳 (app_ja.arb・app_en.arb と、そこから作られる AppLocalizations)
 │   │   ├── ui/                      # UI layer (画面ごと)
 │   │   │   ├── core/                #   共通の Widget・テーマ・色
 │   │   │   ├── shell/               #   タブバー・上部バーなど画面の外枠
@@ -95,7 +98,8 @@ zero-chat/
 │   │       ├── repositories/post/   #   投稿の取得・作成 (サーバー版 / 仮データ版)
 │   │       ├── repositories/auth/   #   サインアップ・サインイン (Cognito 版 / 仮の認証版)
 │   │       ├── repositories/profile/ #  自分のプロフィールの取得・保存 (サーバー版 / 仮データ版)
-│   │       └── services/api/        #   サーバーとの通信
+│   │       ├── services/api/        #   サーバーとの通信
+│   │       └── services/preferences/ #  端末に保存する設定 (表示の言語など) の管理
 │   ├── test/                        # テスト (lib/ と同じ構成)
 │   ├── assets/                      # アイコン・ロゴの SVG
 │   ├── config/

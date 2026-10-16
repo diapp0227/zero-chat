@@ -97,28 +97,32 @@ class ProfileTextInput extends StatelessWidget {
 }
 
 /// 候補から1つを選ぶ欄。押すと候補の一覧が開く
-class ProfileSelectInput extends StatelessWidget {
+class ProfileSelectInput<T> extends StatelessWidget {
   const ProfileSelectInput({
     super.key,
     required this.value,
     required this.options,
+    required this.labelOf,
     required this.onChanged,
   });
 
   /// 選ばれている候補
-  final String value;
+  final T value;
 
   /// 選べる候補の一覧
-  final List<String> options;
+  final List<T> options;
+
+  /// 候補の、画面に出す名前
+  final String Function(T option) labelOf;
 
   /// 候補が選ばれたときの処理
-  final ValueChanged<String> onChanged;
+  final ValueChanged<T> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return _FieldFrame(
       builder: (focusNode) => DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
+        child: DropdownButton<T>(
           value: value,
           focusNode: focusNode,
           isExpanded: true,
@@ -134,7 +138,7 @@ class ProfileSelectInput extends StatelessWidget {
           style: const TextStyle(color: AppColors.inputText, fontSize: 13),
           items: [
             for (final option in options)
-              DropdownMenuItem(value: option, child: Text(option)),
+              DropdownMenuItem(value: option, child: Text(labelOf(option))),
           ],
           onChanged: (value) {
             if (value != null) onChanged(value);

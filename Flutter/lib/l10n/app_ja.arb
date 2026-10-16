@@ -1,0 +1,514 @@
+{
+  "@@locale": "ja",
+  "cancel": "キャンセル",
+  "@cancel": {
+    "description": "シートの左上のボタン"
+  },
+  "back": "戻る",
+  "@back": {
+    "description": "投稿画面の左上のボタン"
+  },
+  "save": "保存",
+  "@save": {
+    "description": "保存するボタン"
+  },
+  "saving": "保存中…",
+  "@saving": {
+    "description": "保存している間のボタンの文字"
+  },
+  "reload": "再読み込み",
+  "@reload": {
+    "description": "読み込みに失敗したときのボタン"
+  },
+  "tabHome": "ホーム",
+  "@tabHome": {
+    "description": "タブの名前"
+  },
+  "tabDiscover": "見つける",
+  "@tabDiscover": {
+    "description": "タブの名前"
+  },
+  "tabNotifications": "通知",
+  "@tabNotifications": {
+    "description": "タブの名前"
+  },
+  "tabOrganization": "組織",
+  "@tabOrganization": {
+    "description": "タブの名前"
+  },
+  "tabMessages": "メッセージ",
+  "@tabMessages": {
+    "description": "タブの名前"
+  },
+  "placeholderNotImplemented": "{title} (未実装)",
+  "@placeholderNotImplemented": {
+    "description": "まだ作っていない画面の中央の文字",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "newPost": "新しい投稿",
+  "@newPost": {
+    "description": "スマホの右下の ＋ ボタンの説明"
+  },
+  "composeButton": "投稿する",
+  "@composeButton": {
+    "description": "PC の上部バーの投稿ボタン"
+  },
+  "profileMenu": "プロフィールメニュー",
+  "@profileMenu": {
+    "description": "アバターのボタンの読み上げ"
+  },
+  "menuProfileSettings": "プロフィール設定",
+  "@menuProfileSettings": {
+    "description": "プロフィールメニューの項目"
+  },
+  "menuLogout": "ログアウト",
+  "@menuLogout": {
+    "description": "プロフィールメニューの項目"
+  },
+  "timelineLatest": "最新",
+  "@timelineLatest": {
+    "description": "タイムラインの「すべての投稿」のタブ"
+  },
+  "categoryAnnouncement": "お知らせ",
+  "@categoryAnnouncement": {
+    "description": "投稿の種類"
+  },
+  "categoryDailyReport": "日報",
+  "@categoryDailyReport": {
+    "description": "投稿の種類"
+  },
+  "categorySelfStudy": "自己学習",
+  "@categorySelfStudy": {
+    "description": "投稿の種類"
+  },
+  "categoryAnnouncementDescription": "チームや組織への連絡を共有",
+  "@categoryAnnouncementDescription": {
+    "description": "投稿の種類の説明"
+  },
+  "categoryDailyReportDescription": "今日の取り組みや気づきを記録",
+  "@categoryDailyReportDescription": {
+    "description": "投稿の種類の説明"
+  },
+  "categorySelfStudyDescription": "学んだことや知識を共有",
+  "@categorySelfStudyDescription": {
+    "description": "投稿の種類の説明"
+  },
+  "timelineEmpty": "投稿はまだありません",
+  "@timelineEmpty": {
+    "description": "投稿が 0 件のとき"
+  },
+  "timelineLoadFailed": "投稿を読み込めませんでした",
+  "@timelineLoadFailed": {
+    "description": "最初の読み込みに失敗したとき"
+  },
+  "timelineLoadMoreFailed": "読み込めませんでした",
+  "@timelineLoadMoreFailed": {
+    "description": "続きの読み込みに失敗したとき"
+  },
+  "filterPosts": "投稿をフィルター",
+  "@filterPosts": {
+    "description": "フィルターボタンの説明"
+  },
+  "postSave": "保存",
+  "@postSave": {
+    "description": "投稿を保存するボタンの読み上げ"
+  },
+  "postUnsave": "保存を解除",
+  "@postUnsave": {
+    "description": "保存済みの投稿のボタンの読み上げ"
+  },
+  "postMoreMenu": "その他のメニュー",
+  "@postMoreMenu": {
+    "description": "投稿の右上の … ボタンの読み上げ"
+  },
+  "postShowMore": "もっと見る",
+  "@postShowMore": {
+    "description": "長い本文の続きを開くボタン"
+  },
+  "postReply": "返信する",
+  "@postReply": {
+    "description": "投稿の下の返信ボタン"
+  },
+  "postReplyCount": "{count}件の返信",
+  "@postReplyCount": {
+    "description": "返信の一覧を開閉するボタン",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "elapsedJustNow": "たった今",
+  "@elapsedJustNow": {
+    "description": "1 分未満の経過時間"
+  },
+  "elapsedMinutes": "{minutes}分",
+  "@elapsedMinutes": {
+    "description": "1 時間未満の経過時間",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "elapsedHours": "{hours}時間",
+  "@elapsedHours": {
+    "description": "24 時間未満の経過時間",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "elapsedYesterday": "昨日",
+  "@elapsedYesterday": {
+    "description": "前日"
+  },
+  "elapsedDays": "{days}日",
+  "@elapsedDays": {
+    "description": "7 日未満の経過日数",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "elapsedMonthDay": "{month}月{day}日",
+  "@elapsedMonthDay": {
+    "description": "今年の日付。monthName は月の短い名前 (例: Oct)",
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      },
+      "monthName": {
+        "type": "String"
+      }
+    }
+  },
+  "elapsedYearMonthDay": "{year}年{month}月{day}日",
+  "@elapsedYearMonthDay": {
+    "description": "去年以前の日付",
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      },
+      "monthName": {
+        "type": "String"
+      }
+    }
+  },
+  "composeBarrier": "投稿画面を閉じる",
+  "@composeBarrier": {
+    "description": "投稿画面の外側の読み上げ"
+  },
+  "composeCategoryTitle": "投稿の種類",
+  "@composeCategoryTitle": {
+    "description": "投稿の種類を選ぶ画面の見出し"
+  },
+  "composeCategoryHeading": "何を共有しますか？",
+  "@composeCategoryHeading": {
+    "description": "投稿の種類を選ぶ画面の質問"
+  },
+  "composeCategoryDescription": "投稿に合うタイトルを選んでください",
+  "@composeCategoryDescription": {
+    "description": "投稿の種類を選ぶ画面の説明"
+  },
+  "composeHint": "{category}の内容を入力...",
+  "@composeHint": {
+    "description": "本文の入力欄のヒント",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "composeSubmit": "投稿する",
+  "@composeSubmit": {
+    "description": "投稿画面の右上のボタン"
+  },
+  "composeSending": "投稿中…",
+  "@composeSending": {
+    "description": "投稿している間のボタンの文字"
+  },
+  "composeFailed": "投稿できませんでした。時間をおいて、もう一度お試しください",
+  "@composeFailed": {
+    "description": "投稿に失敗したとき"
+  },
+  "replyBarrier": "返信画面を閉じる",
+  "@replyBarrier": {
+    "description": "返信画面の外側の読み上げ"
+  },
+  "replyTitle": "返信する",
+  "@replyTitle": {
+    "description": "返信画面の見出し"
+  },
+  "replySubmit": "返信する",
+  "@replySubmit": {
+    "description": "返信画面の右上のボタン"
+  },
+  "replySending": "返信中…",
+  "@replySending": {
+    "description": "返信している間のボタンの文字"
+  },
+  "replyHint": "返信内容を入力...",
+  "@replyHint": {
+    "description": "返信の入力欄のヒント"
+  },
+  "replyFailed": "返信できませんでした。時間をおいて、もう一度お試しください",
+  "@replyFailed": {
+    "description": "返信に失敗したとき"
+  },
+  "replyingTo": "{name}さんの投稿に返信",
+  "@replyingTo": {
+    "description": "返信先の投稿者。name は太字で表示する",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileBarrier": "プロフィール設定を閉じる",
+  "@profileBarrier": {
+    "description": "プロフィール設定の外側の読み上げ"
+  },
+  "profileTitle": "プロフィール設定",
+  "@profileTitle": {
+    "description": "プロフィール設定の見出し"
+  },
+  "profileIntroTitle": "プロフィール情報",
+  "@profileIntroTitle": {
+    "description": "プロフィール設定の上部の見出し"
+  },
+  "profileIntroDescription": "タイムラインに表示される情報とカラーです",
+  "@profileIntroDescription": {
+    "description": "プロフィール設定の上部の説明"
+  },
+  "userName": "ユーザー名",
+  "@userName": {
+    "description": "ユーザー名の項目名"
+  },
+  "userNameHint": "ユーザー名を入力",
+  "@userNameHint": {
+    "description": "プロフィール設定のユーザー名のヒント"
+  },
+  "role": "役職",
+  "@role": {
+    "description": "役職の項目名"
+  },
+  "color": "カラー",
+  "@color": {
+    "description": "アバターのカラーの項目名"
+  },
+  "colorOption": "カラー{number}",
+  "@colorOption": {
+    "description": "カラーの候補の読み上げ",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "language": "言語",
+  "@language": {
+    "description": "プロフィール設定の言語の項目名"
+  },
+  "profileSaveFailed": "保存できませんでした。時間をおいて、もう一度お試しください",
+  "@profileSaveFailed": {
+    "description": "保存に失敗したとき"
+  },
+  "roleEngineer": "エンジニア",
+  "@roleEngineer": {
+    "description": "役職"
+  },
+  "roleDesigner": "デザイナー",
+  "@roleDesigner": {
+    "description": "役職"
+  },
+  "roleProductManager": "プロダクトマネージャー",
+  "@roleProductManager": {
+    "description": "役職"
+  },
+  "roleSales": "セールス",
+  "@roleSales": {
+    "description": "役職"
+  },
+  "roleCorporate": "コーポレート",
+  "@roleCorporate": {
+    "description": "役職"
+  },
+  "authSignUp": "サインアップ",
+  "@authSignUp": {
+    "description": "サインアップ・サインインの切り替え"
+  },
+  "authSignIn": "サインイン",
+  "@authSignIn": {
+    "description": "サインアップ・サインインの切り替え"
+  },
+  "authLanguageSetting": "言語設定",
+  "@authLanguageSetting": {
+    "description": "サインイン画面の言語の項目名"
+  },
+  "authSignUpTitle": "アカウントを作成",
+  "@authSignUpTitle": {
+    "description": "サインアップの見出し"
+  },
+  "authSignUpDescription": "必要な情報を入力して、Zeroをはじめましょう。",
+  "@authSignUpDescription": {
+    "description": "サインアップの説明"
+  },
+  "authSignUpSubmit": "アカウントを作成",
+  "@authSignUpSubmit": {
+    "description": "サインアップのボタン"
+  },
+  "authSignInTitle": "おかえりなさい",
+  "@authSignInTitle": {
+    "description": "サインインの見出し"
+  },
+  "authSignInDescription": "登録済みのアカウントでサインインしてください。",
+  "@authSignInDescription": {
+    "description": "サインインの説明"
+  },
+  "authSignInSubmit": "サインイン",
+  "@authSignInSubmit": {
+    "description": "サインインのボタン"
+  },
+  "authVerifyTitle": "認証コードを入力",
+  "@authVerifyTitle": {
+    "description": "認証コードの見出し"
+  },
+  "authVerifyDescription": "{email} に送信した{digits}桁の認証コードを入力してください。",
+  "@authVerifyDescription": {
+    "description": "認証コードの説明",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      },
+      "digits": {
+        "type": "int"
+      }
+    }
+  },
+  "authVerifySubmit": "認証してはじめる",
+  "@authVerifySubmit": {
+    "description": "認証コードのボタン"
+  },
+  "authCodeLabel": "認証コード",
+  "@authCodeLabel": {
+    "description": "認証コードの項目名"
+  },
+  "authCodeHelper": "コードの有効期限は24時間です",
+  "@authCodeHelper": {
+    "description": "認証コードの補足"
+  },
+  "authChangeEmail": "メールアドレスを変更",
+  "@authChangeEmail": {
+    "description": "認証コードの画面のリンク"
+  },
+  "authResendCode": "コードを再送",
+  "@authResendCode": {
+    "description": "認証コードの画面のリンク"
+  },
+  "authCodeResent": "認証コードを再送しました",
+  "@authCodeResent": {
+    "description": "コードを再送したときのお知らせ"
+  },
+  "authEmail": "メールアドレス",
+  "@authEmail": {
+    "description": "メールアドレスの項目名"
+  },
+  "authPassword": "パスワード",
+  "@authPassword": {
+    "description": "パスワードの項目名"
+  },
+  "authPasswordHint": "{count}文字以上で入力",
+  "@authPasswordHint": {
+    "description": "パスワードのヒント",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "authUserNameHint": "例：ああああ",
+  "@authUserNameHint": {
+    "description": "サインアップのユーザー名のヒント"
+  },
+  "authForgotPassword": "パスワードを忘れた方",
+  "@authForgotPassword": {
+    "description": "サインインのリンク"
+  },
+  "authSending": "送信中…",
+  "@authSending": {
+    "description": "送信している間のボタンの文字"
+  },
+  "brandHeadline": "共有から、\n仕事がつながる。",
+  "@brandHeadline": {
+    "description": "サインイン画面の左の見出し (PC)"
+  },
+  "brandBody": "日々の気づきや学びを気軽に共有して、チームのコミュニケーションをひとつ先へ。",
+  "@brandBody": {
+    "description": "サインイン画面の左の説明 (PC)"
+  },
+  "brandNoteTitle": "小さな共有を、チームの力に。",
+  "@brandNoteTitle": {
+    "description": "サインイン画面の左下のメモ (PC)"
+  },
+  "brandNoteBody": "Zeroなら必要な情報が自然と集まります。",
+  "@brandNoteBody": {
+    "description": "サインイン画面の左下のメモ (PC)"
+  },
+  "authErrorEmailAlreadyExists": "このメールアドレスはすでに登録されています。サインインしてください",
+  "@authErrorEmailAlreadyExists": {
+    "description": "認証のエラー"
+  },
+  "authErrorInvalidPassword": "パスワードは{count}文字以上で入力してください",
+  "@authErrorInvalidPassword": {
+    "description": "認証のエラー",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "authErrorWrongCredentials": "メールアドレスまたはパスワードが正しくありません",
+  "@authErrorWrongCredentials": {
+    "description": "認証のエラー"
+  },
+  "authErrorCodeMismatch": "認証コードが正しくありません",
+  "@authErrorCodeMismatch": {
+    "description": "認証のエラー"
+  },
+  "authErrorCodeExpired": "認証コードの有効期限が切れています。コードを再送してください",
+  "@authErrorCodeExpired": {
+    "description": "認証のエラー"
+  },
+  "authErrorCodeDeliveryFailed": "認証コードを送信できませんでした。メールアドレスを確認してください",
+  "@authErrorCodeDeliveryFailed": {
+    "description": "認証のエラー"
+  },
+  "authErrorTooManyAttempts": "試行回数が多すぎます。時間をおいて、もう一度お試しください",
+  "@authErrorTooManyAttempts": {
+    "description": "認証のエラー"
+  },
+  "authErrorNetwork": "通信できませんでした。接続を確認して、もう一度お試しください",
+  "@authErrorNetwork": {
+    "description": "認証のエラー"
+  },
+  "authErrorUnknown": "うまくいきませんでした。時間をおいて、もう一度お試しください",
+  "@authErrorUnknown": {
+    "description": "認証のエラー"
+  }
+}

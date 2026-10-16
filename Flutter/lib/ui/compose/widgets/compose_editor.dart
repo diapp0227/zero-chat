@@ -8,6 +8,7 @@ import '../../core/sheet_header.dart';
 import '../../profile/current_profile.dart';
 import '../compose_view_model.dart';
 import 'compose_parts.dart';
+import '../../core/l10n.dart';
 
 /// 投稿画面の2ステップ目。選んだ種類の投稿の本文を入力する
 class ComposeEditor extends ConsumerStatefulWidget {
@@ -100,7 +101,9 @@ class _ComposeEditorState extends ConsumerState<ComposeEditor> {
                   height: 1.7,
                 ),
                 decoration: InputDecoration(
-                  hintText: '${widget.category.label}の内容を入力...',
+                  hintText: context.l10n.composeHint(
+                    widget.category.label(context.l10n),
+                  ),
                   hintStyle: const TextStyle(color: AppColors.inputHint),
                   border: InputBorder.none,
                   isCollapsed: true,
@@ -120,17 +123,19 @@ class _ComposeEditorState extends ConsumerState<ComposeEditor> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SheetHeader(
-          title: widget.category.label,
-          leadingLabel: '戻る',
+          title: widget.category.label(context.l10n),
+          leadingLabel: context.l10n.back,
           onLeadingPressed: widget.onBack,
           trailing: SheetPrimaryButton(
-            label: sending ? '投稿中…' : '投稿する',
+            label: sending
+                ? context.l10n.composeSending
+                : context.l10n.composeSubmit,
             onPressed: canSubmit ? _onSubmit : null,
           ),
         ),
         if (submission.hasError)
-          const ComposeNotice(
-            message: '投稿できませんでした。時間をおいて、もう一度お試しください',
+          ComposeNotice(
+            message: context.l10n.composeFailed,
             foregroundColor: AppColors.composeErrorText,
             backgroundColor: AppColors.composeErrorBackground,
           ),

@@ -5,6 +5,7 @@ import '../core/app_icon.dart';
 import '../core/app_logo.dart';
 import '../core/profile_menu_button.dart';
 import 'tab_nav_item.dart';
+import '../core/l10n.dart';
 
 /// PC (expanded 幅) で画面上部に固定する水色のバー
 ///
@@ -247,10 +248,13 @@ class _ComposeButton extends StatelessWidget {
             TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
           ),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: 7,
-          children: [AppIcon(AppIconName.plus, size: 18), Text('投稿する')],
+          children: [
+            const AppIcon(AppIconName.plus, size: 18),
+            Text(context.l10n.composeButton),
+          ],
         ),
       ),
     );

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/app_colors.dart';
 import '../core/app_icon.dart';
-import '../core/app_language.dart';
+import '../../domain/models/app_language.dart';
 import '../core/app_logo.dart';
 import '../core/breakpoints.dart';
 import '../../domain/models/profile.dart';
@@ -18,6 +18,8 @@ import 'widgets/auth_buttons.dart';
 import 'widgets/auth_language_select.dart';
 import 'widgets/auth_mode_tabs.dart';
 import 'widgets/auth_text_field.dart';
+import '../core/app_language_state.dart';
+import '../core/l10n.dart';
 
 /// サインアップ・サインイン画面
 ///
@@ -53,9 +55,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   /// サインアップで選んだ役職
   String _role = profileRoles.first;
-
-  /// 言語設定で選んだ言語 (まだ表示には反映しない)
-  AppLanguage _language = AppLanguage.ja;
 
   /// サインアップ後、認証コードの入力待ちか
   bool _verificationPending = false;
@@ -143,7 +142,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     if (sent && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('認証コードを再送しました')));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.authCodeResent)));
     }
   }
 
@@ -170,13 +169,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       nameController: _nameController,
       codeController: _codeController,
       role: _role,
-      language: _language,
+      // 言語設定は、選んだ瞬間にアプリ全体の表示の言語を切り替える
+      language: ref.watch(appLanguageProvider),
       canSubmit: _canSubmit && !submission.isLoading,
       sending: submission.isLoading,
-      errorMessage: failure is AuthFailure ? failure.reason.message : null,
+      errorMessage: failure is AuthFailure
+          ? failure.reason.message(context.l10n)
+          : null,
       onModeChanged: _changeMode,
       onRoleChanged: (role) => setState(() => _role = role),
-      onLanguageChanged: (language) => setState(() => _language = language),
+      onLanguageChanged: (language) =>
+          ref.read(appLanguageProvider.notifier).select(language),
       onSubmit: _submit,
       onResendCode: _resendCode,
       onChangeEmail: () {
@@ -399,19 +402,27 @@ class _AuthForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final (title, description, submitLabel) = verificationPending
         ? (
-            '認証コードを入力',
-            '$email に送信した${AuthScreen.verificationCodeLength}桁の認証コードを入力してください。',
-            '認証してはじめる',
+            l10n.authVerifyTitle,
+            l10n.authVerifyDescription(
+              email,
+              AuthScreen.verificationCodeLength,
+            ),
+            l10n.authVerifySubmit,
           )
         : switch (mode) {
             AuthMode.signUp => (
-              'アカウントを作成',
-              '必要な情報を入力して、Zeroをはじめましょう。',
-              'アカウントを作成',
+              l10n.authSignUpTitle,
+              l10n.authSignUpDescription,
+              l10n.authSignUpSubmit,
             ),
-            AuthMode.signIn => ('おかえりなさい', '登録済みのアカウントでサインインしてください。', 'サインイン'),
+            AuthMode.signIn => (
+              l10n.authSignInTitle,
+              l10n.authSignInDescription,
+              l10n.authSignInSubmit,
+            ),
           };
 
     return AutofillGroup(
@@ -457,11 +468,11 @@ class _AuthForm extends StatelessWidget {
           if (verificationPending) ...[
             AuthTextField(
               key: const ValueKey('code'),
-              label: '認証コード',
+              label: l10n.authCodeLabel,
               controller: codeController,
               prefix: AuthFieldPrefix.code,
               hintText: '000000',
-              helperText: 'コードの有効期限は24時間です',
+              helperText: l10n.authCodeHelper,
               autofocus: true,
               onSubmitted: onSubmit,
             ),
@@ -469,14 +480,20 @@ class _AuthForm extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AuthLinkButton(label: 'メールアドレスを変更', onPressed: onChangeEmail),
-                AuthLinkButton(label: 'コードを再送', onPressed: onResendCode),
+                AuthLinkButton(
+                  label: l10n.authChangeEmail,
+                  onPressed: onChangeEmail,
+                ),
+                AuthLinkButton(
+                  label: l10n.authResendCode,
+                  onPressed: onResendCode,
+                ),
               ],
             ),
           ] else ...[
             AuthTextField(
               key: const ValueKey('email'),
-              label: 'メールアドレス',
+              label: l10n.authEmail,
               controller: emailController,
               prefix: AuthFieldPrefix.mail,
               hintText: 'name@example.com',
@@ -486,10 +503,10 @@ class _AuthForm extends StatelessWidget {
             const SizedBox(height: 16),
             AuthTextField(
               key: const ValueKey('password'),
-              label: 'パスワード',
+              label: l10n.authPassword,
               controller: passwordController,
               prefix: AuthFieldPrefix.password,
-              hintText: '${AuthScreen.minPasswordLength}文字以上で入力',
+              hintText: l10n.authPasswordHint(AuthScreen.minPasswordLength),
               obscureText: true,
               onSubmitted: onSubmit,
             ),
@@ -497,19 +514,20 @@ class _AuthForm extends StatelessWidget {
               const SizedBox(height: 16),
               AuthTextField(
                 key: const ValueKey('name'),
-                label: 'ユーザー名',
+                label: l10n.userName,
                 controller: nameController,
                 prefix: AuthFieldPrefix.user,
-                hintText: '例：ああああ',
+                hintText: l10n.authUserNameHint,
                 maxLength: ProfileSettingsScreen.maxNameLength,
                 onSubmitted: onSubmit,
               ),
               const SizedBox(height: 16),
               AuthSelectField(
-                label: '役職',
+                label: l10n.role,
                 icon: AppIconName.organization,
                 value: role,
                 options: profileRoles,
+                labelOf: (role) => roleLabel(l10n, role),
                 onChanged: onRoleChanged,
               ),
             ],
@@ -518,7 +536,10 @@ class _AuthForm extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 // TODO: パスワード再設定の画面ができたら、そこへ移る
-                child: AuthLinkButton(label: 'パスワードを忘れた方', onPressed: () {}),
+                child: AuthLinkButton(
+                  label: l10n.authForgotPassword,
+                  onPressed: () {},
+                ),
               ),
             ],
           ],
@@ -528,7 +549,7 @@ class _AuthForm extends StatelessWidget {
           ],
           const SizedBox(height: 20),
           AuthSubmitButton(
-            label: sending ? '送信中…' : submitLabel,
+            label: sending ? l10n.authSending : submitLabel,
             onPressed: canSubmit ? onSubmit : null,
           ),
         ],

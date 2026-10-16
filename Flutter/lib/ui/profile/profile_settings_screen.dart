@@ -10,6 +10,9 @@ import '../../domain/models/profile.dart';
 import 'current_profile.dart';
 import 'widgets/profile_color_select.dart';
 import 'widgets/profile_field.dart';
+import '../../domain/models/app_language.dart';
+import '../core/app_language_state.dart';
+import '../core/l10n.dart';
 
 /// プロフィール設定画面を開く
 ///
@@ -19,13 +22,15 @@ Future<void> showProfileSettingsScreen(BuildContext context) {
   return showSheet(
     context,
     maxWidth: 520,
-    barrierLabel: 'プロフィール設定を閉じる',
+    barrierLabel: context.l10n.profileBarrier,
     builder: (context, fullScreen) =>
         ProfileSettingsScreen(fullScreen: fullScreen),
   );
 }
 
-/// プロフィール設定画面。ユーザー名・役職・アバターのカラーを入力して保存する
+/// プロフィール設定画面。ユーザー名・役職・アバターのカラー・表示の言語を入力して保存する
+///
+/// 表示の言語は端末に保存し、それ以外はサーバーのプロフィールに保存する
 ///
 /// 開いたときにサーバーから最新のプロフィールを読み込む。
 /// 入力中の内容は「保存」を押してサーバーに保存できるまでプロフィールに反映しない
@@ -50,6 +55,9 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
   /// 選んでいるアバターのカラー (カラー1・カラー2)
   late (Color, Color) _colors;
 
+  /// 選んでいる表示の言語
+  late AppLanguage _language;
+
   /// 保存中か (「保存」ボタンを押せなくする)
   bool _saving = false;
 
@@ -66,6 +74,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       ..addListener(() => setState(() {}));
     _role = profile.role;
     _colors = profile.avatarColors;
+    _language = ref.read(appLanguageProvider);
     _loadLatest();
   }
 
@@ -113,6 +122,8 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
           );
       // 投稿・返信はサーバーが最新のプロフィールで返すので、読み込み直して新しい名前・色にする
       ref.invalidate(homeViewModelProvider);
+      // 表示の言語は、プロフィールを保存できたときに切り替える
+      await ref.read(appLanguageProvider.notifier).select(_language);
       if (mounted) Navigator.of(context).pop();
     } on Exception {
       // 画面は閉じずに、入力した内容のまま保存し直せるようにする
@@ -132,11 +143,11 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SheetHeader(
-          title: 'プロフィール設定',
-          leadingLabel: 'キャンセル',
+          title: context.l10n.profileTitle,
+          leadingLabel: context.l10n.cancel,
           onLeadingPressed: () => Navigator.of(context).pop(),
           trailing: SheetPrimaryButton(
-            label: _saving ? '保存中…' : '保存',
+            label: _saving ? context.l10n.saving : context.l10n.save,
             onPressed: canSave ? _save : null,
           ),
         ),
@@ -153,29 +164,41 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 _ProfileIntro(name: name, colors: _colors),
                 const SizedBox(height: 27),
                 ProfileField(
-                  label: 'ユーザー名',
+                  label: context.l10n.userName,
                   child: ProfileTextInput(
                     controller: _nameController,
-                    hintText: 'ユーザー名を入力',
+                    hintText: context.l10n.userNameHint,
                     maxLength: ProfileSettingsScreen.maxNameLength,
                     autofocus: true,
                   ),
                 ),
                 const SizedBox(height: 20),
                 ProfileField(
-                  label: '役職',
+                  label: context.l10n.role,
                   child: ProfileSelectInput(
                     value: _role,
                     options: profileRoles,
+                    labelOf: (role) => roleLabel(context.l10n, role),
                     onChanged: (role) => setState(() => _role = role),
                   ),
                 ),
                 const SizedBox(height: 20),
                 ProfileField(
-                  label: 'カラー',
+                  label: context.l10n.color,
                   child: ProfileColorSelect(
                     value: _colors,
                     onChanged: (colors) => setState(() => _colors = colors),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ProfileField(
+                  label: context.l10n.language,
+                  child: ProfileSelectInput(
+                    value: _language,
+                    options: AppLanguage.values,
+                    labelOf: languageName,
+                    onChanged: (language) =>
+                        setState(() => _language = language),
                   ),
                 ),
               ],
@@ -210,21 +233,24 @@ class _ProfileIntro extends StatelessWidget {
         spacing: 13,
         children: [
           Avatar(name: name.trim(), colors: colors, size: AvatarSize.lg),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 4,
             children: [
               Text(
-                'プロフィール情報',
-                style: TextStyle(
+                context.l10n.profileIntroTitle,
+                style: const TextStyle(
                   color: AppColors.text,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
-                'タイムラインに表示される情報とカラーです',
-                style: TextStyle(color: AppColors.sheetSubtitle, fontSize: 10),
+                context.l10n.profileIntroDescription,
+                style: const TextStyle(
+                  color: AppColors.sheetSubtitle,
+                  fontSize: 10,
+                ),
               ),
             ],
           ),
@@ -249,9 +275,12 @@ class _SaveErrorNotice extends StatelessWidget {
       ),
       child: Semantics(
         liveRegion: true,
-        child: const Text(
-          '保存できませんでした。時間をおいて、もう一度お試しください',
-          style: TextStyle(color: AppColors.composeErrorText, fontSize: 11),
+        child: Text(
+          context.l10n.profileSaveFailed,
+          style: const TextStyle(
+            color: AppColors.composeErrorText,
+            fontSize: 11,
+          ),
         ),
       ),
     );
