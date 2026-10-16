@@ -6,6 +6,7 @@ import 'package:zero_chat/data/repositories/post/post_repository_provider.dart';
 import 'package:zero_chat/domain/models/author.dart';
 import 'package:zero_chat/domain/models/post.dart';
 import 'package:zero_chat/domain/models/post_category.dart';
+import 'package:zero_chat/domain/models/profile.dart';
 import 'package:zero_chat/ui/compose/compose_view_model.dart';
 import 'package:zero_chat/ui/home/home_view_model.dart';
 import 'package:zero_chat/ui/profile/current_profile.dart';
@@ -55,12 +56,14 @@ class _TestPostRepository implements PostRepository {
 
 void main() {
   /// [repository] を使い、プロフィールを保存済みにした ProviderContainer
-  ProviderContainer createContainer(_TestPostRepository repository) {
+  Future<ProviderContainer> createContainer(
+    _TestPostRepository repository,
+  ) async {
     final container = ProviderContainer(
       overrides: [postRepositoryProvider.overrideWithValue(repository)],
     );
     addTearDown(container.dispose);
-    container
+    await container
         .read(currentProfileProvider.notifier)
         .save(const Profile(name: 'やまもと', role: 'デザイナー'));
     // 投稿画面が開いている間と同じく、状態を見ている人がいる状態にする
@@ -69,15 +72,15 @@ void main() {
   }
 
   group('ComposeViewModel', () {
-    test('最初は送信前 (AsyncData) の状態', () {
-      final container = createContainer(_TestPostRepository());
+    test('最初は送信前 (AsyncData) の状態', () async {
+      final container = await createContainer(_TestPostRepository());
 
       expect(container.read(composeViewModelProvider), isA<AsyncData<void>>());
     });
 
     test('プロフィールの名前と役職を付けて投稿を作成し、true を返す', () async {
       final repository = _TestPostRepository();
-      final container = createContainer(repository);
+      final container = await createContainer(repository);
 
       final succeeded = await container
           .read(composeViewModelProvider.notifier)
@@ -94,7 +97,7 @@ void main() {
     });
 
     test('送信中は AsyncLoading の状態になる', () async {
-      final container = createContainer(_TestPostRepository());
+      final container = await createContainer(_TestPostRepository());
 
       final future = container
           .read(composeViewModelProvider.notifier)
@@ -106,7 +109,7 @@ void main() {
 
     test('作成に成功したら、タイムラインを読み込み直す', () async {
       final repository = _TestPostRepository();
-      final container = createContainer(repository);
+      final container = await createContainer(repository);
       container.listen(homeViewModelProvider, (_, _) {});
       await container.read(homeViewModelProvider.future);
       final fetchCountBefore = repository.fetchCount;
@@ -121,7 +124,7 @@ void main() {
 
     test('作成に失敗したら AsyncError の状態になり、false を返す', () async {
       final repository = _TestPostRepository(error: Exception('通信エラー'));
-      final container = createContainer(repository);
+      final container = await createContainer(repository);
       container.listen(homeViewModelProvider, (_, _) {});
       await container.read(homeViewModelProvider.future);
       final fetchCountBefore = repository.fetchCount;

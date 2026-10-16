@@ -105,7 +105,7 @@ class ProfileMenuButton extends ConsumerWidget {
                 children: [
                   Avatar(
                     name: profile.name,
-                    colors: currentUserAvatarColors,
+                    colors: profile.avatarColors,
                     size: AvatarSize.sm,
                   ),
                   const SizedBox(width: 4),

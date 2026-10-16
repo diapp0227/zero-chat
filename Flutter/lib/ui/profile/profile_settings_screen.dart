@@ -5,6 +5,7 @@ import '../core/app_colors.dart';
 import '../core/avatar.dart';
 import '../core/sheet.dart';
 import '../core/sheet_header.dart';
+import '../../domain/models/profile.dart';
 import 'current_profile.dart';
 import 'widgets/profile_field.dart';
 
@@ -24,7 +25,8 @@ Future<void> showProfileSettingsScreen(BuildContext context) {
 
 /// プロフィール設定画面。ユーザー名と役職を入力して保存する
 ///
-/// 入力中の内容は「保存」を押すまでプロフィールに反映しない
+/// 開いたときにサーバーから最新のプロフィールを読み込む。
+/// 入力中の内容は「保存」を押してサーバーに保存できるまでプロフィールに反映しない
 class ProfileSettingsScreen extends ConsumerStatefulWidget {
   const ProfileSettingsScreen({super.key, required this.fullScreen});
 
@@ -43,6 +45,12 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
   late final TextEditingController _nameController;
   late String _role;
 
+  /// 保存中か (「保存」ボタンを押せなくする)
+  bool _saving = false;
+
+  /// 保存に失敗したか (見出しの下にメッセージを出す)
+  bool _saveFailed = false;
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +60,21 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       // アバターの頭文字・文字数・「保存」の押せる・押せないを入力に合わせて切り替える
       ..addListener(() => setState(() {}));
     _role = profile.role;
+    _loadLatest();
+  }
+
+  /// サーバーから最新のプロフィールを読み込み、入力欄に入れる
+  Future<void> _loadLatest() async {
+    final before = ref.read(currentProfileProvider);
+    await ref.read(currentProfileProvider.notifier).load();
+    if (!mounted) return;
+    // 読み込み中に入力を始めていたら、入力したほうを残す
+    if (_nameController.text != before.name || _role != before.role) return;
+    final latest = ref.read(currentProfileProvider);
+    setState(() {
+      _nameController.text = latest.name;
+      _role = latest.role;
+    });
   }
 
   @override
@@ -60,17 +83,37 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     super.dispose();
   }
 
-  void _save() {
-    ref
-        .read(currentProfileProvider.notifier)
-        .save(Profile(name: _nameController.text.trim(), role: _role));
-    Navigator.of(context).pop();
+  Future<void> _save() async {
+    // カラーはまだこの画面で選べないので、今のカラーのまま保存する
+    final current = ref.read(currentProfileProvider);
+    setState(() {
+      _saving = true;
+      _saveFailed = false;
+    });
+    try {
+      await ref
+          .read(currentProfileProvider.notifier)
+          .save(
+            Profile(
+              name: _nameController.text.trim(),
+              role: _role,
+              color1: current.color1,
+              color2: current.color2,
+            ),
+          );
+      if (mounted) Navigator.of(context).pop();
+    } on Exception {
+      // 画面は閉じずに、入力した内容のまま保存し直せるようにする
+      if (mounted) setState(() => _saveFailed = true);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final name = _nameController.text;
-    final canSave = name.trim().isNotEmpty;
+    final canSave = name.trim().isNotEmpty && !_saving;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -81,10 +124,11 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
           leadingLabel: 'キャンセル',
           onLeadingPressed: () => Navigator.of(context).pop(),
           trailing: SheetPrimaryButton(
-            label: '保存',
+            label: _saving ? '保存中…' : '保存',
             onPressed: canSave ? _save : null,
           ),
         ),
+        if (_saveFailed) const _SaveErrorNotice(),
         Flexible(
           child: SingleChildScrollView(
             padding: widget.fullScreen
@@ -93,7 +137,10 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _ProfileIntro(name: name),
+                _ProfileIntro(
+                  name: name,
+                  colors: ref.watch(currentProfileProvider).avatarColors,
+                ),
                 const SizedBox(height: 27),
                 ProfileField(
                   label: 'ユーザー名',
@@ -124,10 +171,13 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
 
 /// 入力欄の上の「プロフィール情報」。左にアバター、右に見出しと説明
 class _ProfileIntro extends StatelessWidget {
-  const _ProfileIntro({required this.name});
+  const _ProfileIntro({required this.name, required this.colors});
 
   /// 入力中のユーザー名 (アバターの頭文字に使う)
   final String name;
+
+  /// アバターのグラデーション (プロフィールのカラー1・カラー2)
+  final (Color, Color) colors;
 
   @override
   Widget build(BuildContext context) {
@@ -141,11 +191,7 @@ class _ProfileIntro extends StatelessWidget {
       child: Row(
         spacing: 13,
         children: [
-          Avatar(
-            name: name.trim(),
-            colors: currentUserAvatarColors,
-            size: AvatarSize.lg,
-          ),
+          Avatar(name: name.trim(), colors: colors, size: AvatarSize.lg),
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 4,
@@ -165,6 +211,30 @@ class _ProfileIntro extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 見出しの下に出す、保存に失敗したときのメッセージ (投稿画面のエラーと同じ見た目)
+class _SaveErrorNotice extends StatelessWidget {
+  const _SaveErrorNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.composeErrorBackground,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Semantics(
+        liveRegion: true,
+        child: const Text(
+          '保存できませんでした。時間をおいて、もう一度お試しください',
+          style: TextStyle(color: AppColors.composeErrorText, fontSize: 11),
+        ),
       ),
     );
   }

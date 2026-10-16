@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/auth/auth_repository.dart';
 import '../../data/repositories/auth/auth_repository_provider.dart';
+import '../../domain/models/profile.dart';
 import '../profile/current_profile.dart';
 import 'auth_session.dart';
 
@@ -34,7 +35,7 @@ class AuthViewModel extends Notifier<AsyncValue<void>> {
 
   /// 確認コード [code] でアカウントを確認し、続けてサインインする。サインインできたら true を返す
   ///
-  /// [profile] (サインアップで入力したユーザー名・役職) を渡すと、サインインできたときにプロフィールにする
+  /// [profile] (サインアップで入力したユーザー名・役職) を渡すと、サインインできたときにサーバーに保存する
   Future<bool> confirmAndSignIn({
     required String email,
     required String password,
@@ -91,9 +92,15 @@ class AuthViewModel extends Notifier<AsyncValue<void>> {
     if (outcome != SignInOutcome.signedIn) {
       throw const AuthFailure(AuthFailureReason.unknown);
     }
-    // ホームに移る前にプロフィールを入れておき、最初からユーザー名・役職を表示する
+    // ホームに移る前にプロフィールを保存しておき、最初からユーザー名・役職を表示する
     if (profile != null) {
-      ref.read(currentProfileProvider.notifier).save(profile);
+      final currentProfile = ref.read(currentProfileProvider.notifier);
+      try {
+        await currentProfile.save(profile);
+      } on Exception {
+        // サインインは済んでいるので先に進む。プロフィール設定画面から保存し直せる
+        currentProfile.showUnsaved(profile);
+      }
     }
     ref.read(authSessionProvider.notifier).signIn();
     return true;

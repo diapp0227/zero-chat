@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/auth/auth_repository.dart';
 import '../../data/repositories/auth/auth_repository_provider.dart';
+import '../profile/current_profile.dart';
 
 /// サインインしているか
 ///
@@ -39,6 +40,8 @@ class AuthSession extends Notifier<bool> {
       // 次に起動したときにサインインが残っていることがあるが、もう一度ログアウトすれば消える
     } finally {
       state = false;
+      // 次にサインインした人に、前の人のプロフィールが見えないようにする
+      ref.invalidate(currentProfileProvider);
     }
   }
 }

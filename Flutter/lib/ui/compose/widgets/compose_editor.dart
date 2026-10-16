@@ -78,7 +78,7 @@ class _ComposeEditorState extends ConsumerState<ComposeEditor> {
         children: [
           Avatar(
             name: profile.name,
-            colors: currentUserAvatarColors,
+            colors: profile.avatarColors,
             size: AvatarSize.lg,
           ),
           Expanded(

@@ -6,6 +6,7 @@ import '../core/app_icon.dart';
 import '../core/app_language.dart';
 import '../core/app_logo.dart';
 import '../core/breakpoints.dart';
+import '../../domain/models/profile.dart';
 import '../profile/current_profile.dart';
 import '../profile/profile_settings_screen.dart';
 import '../../data/repositories/auth/auth_repository.dart';
@@ -106,7 +107,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         email: email,
         password: password,
         code: _codeController.text,
-        // サインインから確認に進んだときは、ユーザー名・役職を入力していない
+        // サインインから確認に進んだときは、ユーザー名・役職を入力していない。
+        // カラーはまだ選べないので、決まった色 (Profile の初期値) で保存する
         profile: _mode == AuthMode.signUp
             ? Profile(name: _nameController.text.trim(), role: _role)
             : null,
@@ -236,28 +238,37 @@ class _DesktopLayout extends StatelessWidget {
                     child: ClipRRect(
                       // 枠線の内側で切り抜く
                       borderRadius: BorderRadius.circular(27),
-                      child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Expanded(flex: 9, child: AuthBrandPanel()),
-                            Expanded(
-                              flex: 11,
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: formPadding,
-                                  vertical: 50,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [form],
+                      // カードの高さは右のフォームで決め、左の水色の面はその高さいっぱいに広げる。
+                      // IntrinsicHeight で高さを見積もると、Web では実際より 1px 低くなり
+                      // フォームがはみ出すことがあるため、見積もりを使わない
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Positioned.fill(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(flex: 9, child: AuthBrandPanel()),
+                                Spacer(flex: 11),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const Spacer(flex: 9),
+                              Expanded(
+                                flex: 11,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: formPadding,
+                                    vertical: 50,
+                                  ),
+                                  child: form,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),

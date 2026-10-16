@@ -26,6 +26,11 @@ abstract class ApiService {
   ///
   /// ステータスコードが 2xx (作成成功の 201 など) 以外なら [ApiException] を投げる
   Future<Object?> postJson(String path, {required Object? body});
+
+  /// [path] に [body] を JSON にして PUT でリクエストし、レスポンスの JSON を返す
+  ///
+  /// ステータスコードが 2xx 以外なら [ApiException] を投げる
+  Future<Object?> putJson(String path, {required Object? body});
 }
 
 /// サーバーが 2xx 以外のステータスコードを返したときのエラー
@@ -74,15 +79,30 @@ class HttpApiService implements ApiService {
     final response = await _client
         .post(
           Uri.parse('$baseUrl$path'),
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            ...await _authHeaders(),
-          },
+          headers: await _jsonHeaders(),
           body: jsonEncode(body),
         )
         .timeout(_timeout);
     return _decode(response);
   }
+
+  @override
+  Future<Object?> putJson(String path, {required Object? body}) async {
+    final response = await _client
+        .put(
+          Uri.parse('$baseUrl$path'),
+          headers: await _jsonHeaders(),
+          body: jsonEncode(body),
+        )
+        .timeout(_timeout);
+    return _decode(response);
+  }
+
+  /// JSON を送るときのヘッダー (アクセストークンがあれば認証のヘッダーも付ける)
+  Future<Map<String, String>> _jsonHeaders() async => {
+    'Content-Type': 'application/json; charset=utf-8',
+    ...await _authHeaders(),
+  };
 
   /// アクセストークンがあれば `Authorization: Bearer <トークン>` のヘッダーを返す
   Future<Map<String, String>> _authHeaders() async {

@@ -119,7 +119,33 @@ void main() {
       );
     });
 
-    test('アクセストークンがあれば、GET と POST に Bearer で付ける', () async {
+    test('本文を JSON にして PUT し、レスポンスの JSON を返す', () async {
+      http.Request? requested;
+      final client = MockClient((request) async {
+        requested = request;
+        return jsonResponse({
+          'profile': {'name': 'ああああ'},
+        }, 200);
+      });
+
+      final json = await HttpApiService(
+        baseUrl: baseUrl,
+        client: client,
+      ).putJson('/profile', body: {'name': 'ああああ'});
+
+      expect(requested!.method, 'PUT');
+      expect(requested!.url, Uri.parse('https://example.com/profile'));
+      expect(
+        requested!.headers['Content-Type'],
+        startsWith('application/json'),
+      );
+      expect(jsonDecode(requested!.body), {'name': 'ああああ'});
+      expect(json, {
+        'profile': {'name': 'ああああ'},
+      });
+    });
+
+    test('アクセストークンがあれば、GET・POST・PUT に Bearer で付ける', () async {
       final headers = <Map<String, String>>[];
       final client = MockClient((request) async {
         headers.add(request.headers);
@@ -133,8 +159,9 @@ void main() {
 
       await service.getJson('/posts');
       await service.postJson('/posts', body: {'text': 'a'});
+      await service.putJson('/profile', body: {'name': 'a'});
 
-      expect(headers, hasLength(2));
+      expect(headers, hasLength(3));
       for (final h in headers) {
         expect(h['Authorization'], 'Bearer token123');
       }

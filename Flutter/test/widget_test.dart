@@ -225,7 +225,7 @@ void main() {
       // ユーザー名が空のうちは進まない
       expect(find.text('認証コードを入力'), findsNothing);
 
-      await tester.enterText(find.byType(TextField).at(2), '山本 美咲');
+      await tester.enterText(find.byType(TextField).at(2), 'ああああ');
       await tester.tap(find.text('エンジニア'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('デザイナー').last);
@@ -252,7 +252,7 @@ void main() {
       final profile = ProviderScope.containerOf(
         tester.element(find.byType(App)),
       ).read(currentProfileProvider);
-      expect(profile.name, '山本 美咲');
+      expect(profile.name, 'ああああ');
       expect(profile.role, 'デザイナー');
     });
 

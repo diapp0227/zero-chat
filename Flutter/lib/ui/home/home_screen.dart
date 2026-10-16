@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/app_colors.dart';
 import '../core/breakpoints.dart';
+import '../profile/current_profile.dart';
 import 'home_view_model.dart';
 import 'timeline_post.dart';
 import 'widgets/post_cell.dart';
@@ -11,12 +12,25 @@ import 'widgets/timeline_header.dart';
 
 /// ホーム画面 (タイムライン)
 ///
-/// PC (expanded 幅) では上部バーがヘッダーを兼ねるので TimelineHeader は出さない
-class HomeScreen extends ConsumerWidget {
+/// PC (expanded 幅) では上部バーがヘッダーを兼ねるので TimelineHeader は出さない。
+/// 開いたときに、自分のプロフィールをサーバーから読み込む
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // ヘッダーのアバターや投稿に使う名前・役職を最新にする
+    ref.read(currentProfileProvider.notifier).load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final isExpanded = ScreenSize.fromWidth(width) == ScreenSize.expanded;
     // 選択中のカテゴリの投稿 (読み込み中・失敗の状態も含む)

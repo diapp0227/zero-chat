@@ -36,6 +36,10 @@ class _TestApiService implements ApiService {
     postedBody = body;
     return response;
   }
+
+  @override
+  Future<Object?> putJson(String path, {required Object? body}) =>
+      throw UnimplementedError();
 }
 
 void main() {
