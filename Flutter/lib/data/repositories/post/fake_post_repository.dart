@@ -1,6 +1,7 @@
 import '../../../domain/models/author.dart';
 import '../../../domain/models/post.dart';
 import '../../../domain/models/post_category.dart';
+import '../../../domain/models/post_page.dart';
 import '../../../domain/models/profile.dart';
 import '../../../domain/models/reply.dart';
 import 'post_repository.dart';
@@ -22,6 +23,12 @@ const _cat = Author(id: 9, name: 'ねこ', role: 'エンジニア');
 /// 投稿・返信日時は、このクラスを作った時刻からさかのぼった日時にしている。
 /// createPost で作った投稿と createReply で作った返信はメモリ上にだけ持ち、アプリを閉じると消える
 class FakePostRepository implements PostRepository {
+  /// [pageSize] は 1 回で返す投稿の最大件数 (サーバーと同じ 10 件)
+  FakePostRepository({this.pageSize = 10});
+
+  /// 1 回で返す投稿の最大件数
+  final int pageSize;
+
   /// 投稿・返信日時の基準にする時刻
   final DateTime _createdAt = DateTime.now();
 
@@ -32,13 +39,20 @@ class FakePostRepository implements PostRepository {
   final Map<int, List<Reply>> _createdReplies = {};
 
   @override
-  Future<List<Post>> fetchPosts({PostCategory? category}) async {
+  Future<PostPage> fetchPosts({PostCategory? category, String? cursor}) async {
     final posts = [..._posts(), ..._createdPosts]
         .where((post) => category == null || post.category == category)
         .map(_withCreatedReplies)
         .toList();
     posts.sort((a, b) => b.postedAt.compareTo(a.postedAt));
-    return posts;
+
+    // 目印は「何件目から読むか」の数字にする (サーバーの目印とは中身が違うが、アプリからは同じに見える)
+    final start = cursor == null ? 0 : int.parse(cursor);
+    final end = (start + pageSize).clamp(0, posts.length);
+    return PostPage(
+      posts: posts.sublist(start.clamp(0, posts.length), end),
+      nextCursor: end < posts.length ? '$end' : null,
+    );
   }
 
   @override

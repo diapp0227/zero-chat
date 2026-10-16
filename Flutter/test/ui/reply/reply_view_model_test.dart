@@ -8,6 +8,7 @@ import 'package:zero_chat/data/repositories/profile/profile_repository_provider.
 import 'package:zero_chat/domain/models/author.dart';
 import 'package:zero_chat/domain/models/post.dart';
 import 'package:zero_chat/domain/models/post_category.dart';
+import 'package:zero_chat/domain/models/post_page.dart';
 import 'package:zero_chat/domain/models/profile.dart';
 import 'package:zero_chat/domain/models/reply.dart';
 import 'package:zero_chat/ui/home/home_view_model.dart';
@@ -28,9 +29,9 @@ class _TestPostRepository implements PostRepository {
   int fetchCount = 0;
 
   @override
-  Future<List<Post>> fetchPosts({PostCategory? category}) async {
+  Future<PostPage> fetchPosts({PostCategory? category, String? cursor}) async {
     fetchCount++;
-    return [];
+    return const PostPage(posts: [], nextCursor: null);
   }
 
   @override

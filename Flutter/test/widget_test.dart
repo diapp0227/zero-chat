@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zero_chat/app.dart';
+import 'package:zero_chat/data/repositories/post/post_repository_provider.dart';
+import 'package:zero_chat/data/repositories/post/fake_post_repository.dart';
 import 'package:zero_chat/data/repositories/auth/auth_repository_provider.dart';
 import 'package:zero_chat/data/repositories/auth/fake_auth_repository.dart';
 import 'package:zero_chat/ui/auth/auth_screen.dart';
@@ -238,6 +240,37 @@ void main() {
 
     expect(find.byType(ReplyScreen), findsNothing);
     expect(find.text('テストの返信'), findsOneWidget);
+  });
+
+  testWidgets('下までスクロールすると、続きの投稿を読み込む', (WidgetTester tester) async {
+    setScreenSize(tester, const Size(390, 844));
+    // 3 件ずつ返す仮データ (全部で 4 ページ以上になる)
+    final repository = FakePostRepository(pageSize: 3);
+    final all = (await FakePostRepository().fetchPosts()).posts;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authSessionProvider.overrideWithBuild((ref, notifier) => true),
+          postRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: const App(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // 最初は 3 件目までしか読み込んでいない
+    expect(find.byKey(ValueKey(all.last.id)), findsNothing);
+
+    await tester.dragUntilVisible(
+      find.byKey(ValueKey(all.last.id)),
+      find.byType(ListView),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+
+    // 一番古い投稿まで出て、最後まで読んだので読み込み中の表示は消える
+    expect(find.byKey(ValueKey(all.last.id)), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   group('サインイン画面', () {

@@ -1,5 +1,6 @@
 import '../../../domain/models/post.dart';
 import '../../../domain/models/post_category.dart';
+import '../../../domain/models/post_page.dart';
 import '../../../domain/models/profile.dart';
 import '../../../domain/models/reply.dart';
 
@@ -11,7 +12,9 @@ abstract class PostRepository {
   /// 投稿の一覧を新しい順に取得する
   ///
   /// [category] を指定するとその種類の投稿だけ、null ならすべての投稿を返す
-  Future<List<Post>> fetchPosts({PostCategory? category});
+  ///
+  /// 1 回で新しい順に最大 10 件を返す。[cursor] に前回の [PostPage.nextCursor] を渡すと、その続きを返す
+  Future<PostPage> fetchPosts({PostCategory? category, String? cursor});
 
   /// 投稿を作成し、作成された投稿を返す
   ///

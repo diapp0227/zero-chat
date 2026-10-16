@@ -7,7 +7,7 @@ import 'package:zero_chat/domain/models/profile.dart';
 void main() {
   group('FakePostRepository', () {
     test('種類を指定しなければ、すべての投稿を新しい順に返す', () async {
-      final posts = await FakePostRepository().fetchPosts();
+      final posts = (await FakePostRepository().fetchPosts()).posts;
 
       expect(posts, isNotEmpty);
       for (var i = 1; i < posts.length; i++) {
@@ -21,10 +21,10 @@ void main() {
 
     test('種類を指定すると、その種類の投稿だけを返す', () async {
       final repository = FakePostRepository();
-      final all = await repository.fetchPosts();
+      final all = (await repository.fetchPosts()).posts;
 
       for (final category in PostCategory.values) {
-        final posts = await repository.fetchPosts(category: category);
+        final posts = (await repository.fetchPosts(category: category)).posts;
         expect(posts.every((post) => post.category == category), isTrue);
         expect(
           posts.length,
@@ -34,7 +34,7 @@ void main() {
     });
 
     test('投稿・返信の番号はすべて一意', () async {
-      final posts = await FakePostRepository().fetchPosts();
+      final posts = (await FakePostRepository().fetchPosts()).posts;
       final ids = [
         for (final post in posts) ...[
           post.id,
@@ -54,7 +54,7 @@ void main() {
         authorName: 'ああああ',
         authorRole: 'デザイナー',
       );
-      final posts = await repository.fetchPosts();
+      final posts = (await repository.fetchPosts()).posts;
 
       expect(posts.first.id, created.id);
       expect(created.text, 'お知らせの本文');
@@ -72,12 +72,12 @@ void main() {
         authorRole: 'デザイナー',
       );
 
-      final announcements = await repository.fetchPosts(
+      final announcements = (await repository.fetchPosts(
         category: PostCategory.announcement,
-      );
-      final dailyReports = await repository.fetchPosts(
+      )).posts;
+      final dailyReports = (await repository.fetchPosts(
         category: PostCategory.dailyReport,
-      );
+      )).posts;
       expect(announcements.map((post) => post.id), contains(created.id));
       expect(dailyReports.map((post) => post.id), isNot(contains(created.id)));
     });
@@ -93,7 +93,7 @@ void main() {
           authorRole: 'エンジニア',
         );
       }
-      final posts = await repository.fetchPosts();
+      final posts = (await repository.fetchPosts()).posts;
       final ids = [
         for (final post in posts) ...[
           post.id,
@@ -106,14 +106,14 @@ void main() {
 
     test('返信すると、その投稿の返信の最後に出て、番号はほかと重ならない', () async {
       final repository = FakePostRepository();
-      final target = (await repository.fetchPosts()).first;
+      final target = (await repository.fetchPosts()).posts.first;
 
       final reply = await repository.createReply(
         postId: target.id,
         text: '返信の本文',
         author: const Profile(name: 'ああああ', role: 'エンジニア'),
       );
-      final posts = await repository.fetchPosts();
+      final posts = (await repository.fetchPosts()).posts;
 
       final updated = posts.firstWhere((post) => post.id == target.id);
       expect(updated.replies.length, target.replies.length + 1);
@@ -143,6 +143,23 @@ void main() {
         ),
         throwsArgumentError,
       );
+    });
+
+    test('pageSize 件ずつ返し、目印で続きを読める', () async {
+      final repository = FakePostRepository(pageSize: 3);
+      final all = (await FakePostRepository().fetchPosts()).posts;
+
+      final ids = <int>[];
+      String? cursor;
+      do {
+        final page = await repository.fetchPosts(cursor: cursor);
+        expect(page.posts.length, lessThanOrEqualTo(3));
+        ids.addAll(page.posts.map((post) => post.id));
+        cursor = page.nextCursor;
+      } while (cursor != null);
+
+      // 全部を、重ならずに同じ順で読める
+      expect(ids, all.map((post) => post.id));
     });
   });
 }

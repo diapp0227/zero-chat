@@ -6,8 +6,8 @@ import 'package:zero_chat/data/repositories/post/fake_post_repository.dart';
 import 'package:zero_chat/data/repositories/post/post_repository_provider.dart';
 import 'package:zero_chat/data/repositories/profile/fake_profile_repository.dart';
 import 'package:zero_chat/data/repositories/profile/profile_repository_provider.dart';
-import 'package:zero_chat/domain/models/post.dart';
 import 'package:zero_chat/domain/models/post_category.dart';
+import 'package:zero_chat/domain/models/post_page.dart';
 import 'package:zero_chat/domain/models/profile.dart';
 import 'package:zero_chat/ui/core/app_colors.dart';
 import 'package:zero_chat/ui/core/avatar.dart';
@@ -20,9 +20,9 @@ class _CountingPostRepository extends FakePostRepository {
   int fetchCount = 0;
 
   @override
-  Future<List<Post>> fetchPosts({PostCategory? category}) {
+  Future<PostPage> fetchPosts({PostCategory? category, String? cursor}) {
     fetchCount++;
-    return super.fetchPosts(category: category);
+    return super.fetchPosts(category: category, cursor: cursor);
   }
 }
 

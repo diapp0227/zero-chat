@@ -5,7 +5,7 @@ import '../core/app_colors.dart';
 import '../core/breakpoints.dart';
 import '../profile/current_profile.dart';
 import 'home_view_model.dart';
-import 'timeline_post.dart';
+import 'timeline_state.dart';
 import 'widgets/post_cell.dart';
 import 'widgets/timeline_category_tabs.dart';
 import 'widgets/timeline_header.dart';
@@ -34,7 +34,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final width = MediaQuery.sizeOf(context).width;
     final isExpanded = ScreenSize.fromWidth(width) == ScreenSize.expanded;
     // 選択中のカテゴリの投稿 (読み込み中・失敗の状態も含む)
-    final posts = ref.watch(homeViewModelProvider);
+    final timeline = ref.watch(homeViewModelProvider);
 
     // スマホ・タブレットで列より画面が広いときは、列の左右に線を引く
     final showSideBorders = !isExpanded && width > _TimelineColumn.maxWidth;
@@ -50,12 +50,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: TimelineCategoryTabs(centered: !isExpanded),
               ),
               Expanded(
-                child: switch (posts) {
+                child: switch (timeline) {
                   // 取得済み (カテゴリを切り替えて読み込み中も、前の投稿を出しておく)
-                  AsyncValue(value: final posts?) =>
-                    posts.isEmpty
+                  AsyncValue(value: final timeline?) =>
+                    timeline.posts.isEmpty
                         ? const _TimelineMessage(message: '投稿はまだありません')
-                        : _TimelineList(posts: posts),
+                        : _TimelineList(
+                            timeline: timeline,
+                            onLoadMore: () => ref
+                                .read(homeViewModelProvider.notifier)
+                                .loadMore(),
+                          ),
                   AsyncValue(error: _?) => _TimelineMessage(
                     message: '投稿を読み込めませんでした',
                     onRetry: () =>
@@ -88,23 +93,110 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-/// 投稿の一覧
+/// 投稿の一覧。一番下に、続きの読み込みの表示 (読み込み中・失敗) を置く
 ///
 /// 一覧は画面の全幅に広げ、列の外側 (左右の余白) でもスクロールできるようにする
 class _TimelineList extends StatelessWidget {
-  const _TimelineList({required this.posts});
+  const _TimelineList({required this.timeline, required this.onLoadMore});
 
-  /// 表示する投稿の一覧
-  final List<TimelinePost> posts;
+  /// 表示する投稿の一覧と、続きの読み込みの状態
+  final TimelineState timeline;
+
+  /// 続きを読み込む処理
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context) {
+    final posts = timeline.posts;
     return ListView.builder(
       // 下はフッタータブの裏に隠れないよう、その高さ分あける
       padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
-      itemCount: posts.length,
-      itemBuilder: (context, index) => _TimelineColumn(
-        child: PostCell(key: ValueKey(posts[index].id), post: posts[index]),
+      itemCount: posts.length + 1,
+      itemBuilder: (context, index) {
+        if (index < posts.length) {
+          return _TimelineColumn(
+            child: PostCell(key: ValueKey(posts[index].id), post: posts[index]),
+          );
+        }
+        return _TimelineFooter(timeline: timeline, onLoadMore: onLoadMore);
+      },
+    );
+  }
+}
+
+/// 一覧の一番下。続きがあれば読み込み中の表示、失敗したら「再読み込み」を出す
+///
+/// ListView は画面の少し外 (下端の手前) の行から作るので、この行が作られたら
+/// 一覧の下端の近くまでスクロールしたとみなして、続きを読み込む
+class _TimelineFooter extends StatefulWidget {
+  const _TimelineFooter({required this.timeline, required this.onLoadMore});
+
+  /// 一覧と続きの読み込みの状態
+  final TimelineState timeline;
+
+  /// 続きを読み込む処理
+  final VoidCallback onLoadMore;
+
+  @override
+  State<_TimelineFooter> createState() => _TimelineFooterState();
+}
+
+class _TimelineFooterState extends State<_TimelineFooter> {
+  @override
+  void initState() {
+    super.initState();
+    _loadMoreIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(_TimelineFooter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 続きを足しても投稿が少なく、この行が画面に残っているときは、さらに続きを読む
+    _loadMoreIfNeeded();
+  }
+
+  void _loadMoreIfNeeded() {
+    final timeline = widget.timeline;
+    if (!timeline.hasMore ||
+        timeline.isLoadingMore ||
+        timeline.loadMoreFailed) {
+      return;
+    }
+    // 作っている途中に状態を変えないよう、描き終わってから読み込む
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onLoadMore();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final timeline = widget.timeline;
+    if (!timeline.hasMore) return const SizedBox(height: 24);
+
+    return _TimelineColumn(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: timeline.loadMoreFailed
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4,
+                  children: [
+                    const Text(
+                      '読み込めませんでした',
+                      style: TextStyle(color: AppColors.postMeta, fontSize: 12),
+                    ),
+                    TextButton(
+                      onPressed: widget.onLoadMore,
+                      child: const Text('再読み込み'),
+                    ),
+                  ],
+                )
+              : const SizedBox.square(
+                  dimension: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+        ),
       ),
     );
   }

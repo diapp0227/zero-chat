@@ -1,6 +1,7 @@
 import '../../../domain/models/author.dart';
 import '../../../domain/models/post.dart';
 import '../../../domain/models/post_category.dart';
+import '../../../domain/models/post_page.dart';
 import '../../../domain/models/profile.dart';
 import '../../../domain/models/reply.dart';
 import '../../services/api/api_service.dart';
@@ -10,7 +11,7 @@ import 'post_repository.dart';
 /// サーバーの API で投稿を取得 (GET /posts)・作成 (POST /posts) し、
 /// 返信 (POST /posts/{id}/replies) する PostRepository
 ///
-/// 取得の API は新しい順に最大 10 件を返す。
+/// 取得の API は新しい順に最大 10 件と、続きを読むための目印 (nextCursor) を返す。
 /// レスポンスの形は docs/public/get-posts-lambda.md・create-post-lambda.md・create-reply-lambda.md を参照
 class HttpPostRepository implements PostRepository {
   HttpPostRepository(this._apiService);
@@ -18,14 +19,22 @@ class HttpPostRepository implements PostRepository {
   final ApiService _apiService;
 
   @override
-  Future<List<Post>> fetchPosts({PostCategory? category}) async {
-    final json = await _apiService.getJson(
-      '/posts',
+  Future<PostPage> fetchPosts({PostCategory? category, String? cursor}) async {
+    final query = {
       // 種類は enum の名前 (例: dailyReport) で渡す
-      query: category == null ? null : {'category': category.name},
+      'category': ?category?.name,
+      'cursor': ?cursor,
+    };
+    final json =
+        await _apiService.getJson('/posts', query: query.isEmpty ? null : query)
+            as Map<String, dynamic>;
+    final posts = json['posts'] as List<dynamic>;
+    return PostPage(
+      posts: posts
+          .map((post) => _toPost(post as Map<String, dynamic>))
+          .toList(),
+      nextCursor: json['nextCursor'] as String?,
     );
-    final posts = (json as Map<String, dynamic>)['posts'] as List<dynamic>;
-    return posts.map((post) => _toPost(post as Map<String, dynamic>)).toList();
   }
 
   @override

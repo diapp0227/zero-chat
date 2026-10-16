@@ -50,7 +50,7 @@ void main() {
     test('種類を指定しなければ、クエリなしで /posts を取得する', () async {
       final api = _TestApiService({'posts': <Object>[]});
 
-      await HttpPostRepository(api).fetchPosts();
+      (await HttpPostRepository(api).fetchPosts()).posts;
 
       expect(api.requestedPath, '/posts');
       expect(api.requestedQuery, isNull);
@@ -59,11 +59,33 @@ void main() {
     test('種類を指定すると、enum の名前を category に入れて取得する', () async {
       final api = _TestApiService({'posts': <Object>[]});
 
-      await HttpPostRepository(
+      (await HttpPostRepository(
         api,
-      ).fetchPosts(category: PostCategory.dailyReport);
+      ).fetchPosts(category: PostCategory.dailyReport)).posts;
 
       expect(api.requestedQuery, {'category': 'dailyReport'});
+    });
+
+    test('目印を渡すと cursor に入れ、レスポンスの nextCursor を返す', () async {
+      final api = _TestApiService({
+        'posts': <Object>[],
+        'nextCursor': 'next-page',
+      });
+
+      final page = await HttpPostRepository(
+        api,
+      ).fetchPosts(category: PostCategory.dailyReport, cursor: 'abc');
+
+      expect(api.requestedQuery, {'category': 'dailyReport', 'cursor': 'abc'});
+      expect(page.nextCursor, 'next-page');
+    });
+
+    test('nextCursor が null なら、続きはない', () async {
+      final api = _TestApiService({'posts': <Object>[], 'nextCursor': null});
+
+      final page = await HttpPostRepository(api).fetchPosts();
+
+      expect(page.nextCursor, isNull);
     });
 
     test('レスポンスの JSON を投稿に変換する', () async {
@@ -87,7 +109,7 @@ void main() {
         ],
       });
 
-      final posts = await HttpPostRepository(api).fetchPosts();
+      final posts = (await HttpPostRepository(api).fetchPosts()).posts;
 
       final post = posts.single;
       expect(post.id, 2);
@@ -120,7 +142,7 @@ void main() {
         ],
       });
 
-      final posts = await HttpPostRepository(api).fetchPosts();
+      final posts = (await HttpPostRepository(api).fetchPosts()).posts;
 
       expect(posts.single.replies, isEmpty);
     });
@@ -222,7 +244,7 @@ void main() {
         ],
       });
 
-      final post = (await HttpPostRepository(api).fetchPosts()).single;
+      final post = (await HttpPostRepository(api).fetchPosts()).posts.single;
 
       expect(post.author.avatarColors, (
         const Color(0xFF80C9B2),
