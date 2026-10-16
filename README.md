@@ -6,6 +6,7 @@ Flutter によるマルチプラットフォーム開発と AWS サーバーレ�
 | iOS | Web |
 |:---:|:---:|
 | <img src="docs/public/images/zero-chat_iOS.png" alt="iOS 版のタイムライン画面" width="220"> | <img src="docs/public/images/zero-chat_Web.png" alt="Web 版のタイムライン画面" width="560"> |
+| <video src="https://github.com/user-attachments/assets/e6c0c1d4-87dc-4f7f-bbfd-a6600542acb8" width="220" controls></video> | <video src="https://github.com/user-attachments/assets/f0ee8664-8444-4bd0-9956-9c47953e6b61" width="560" controls></video> |
 
 ## プロジェクト概要
 
