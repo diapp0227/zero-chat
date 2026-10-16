@@ -5,7 +5,7 @@ import 'profile_repository.dart';
 
 /// サーバーの API で自分のプロフィールを取得 (GET /profile)・保存 (PUT /profile) する ProfileRepository
 ///
-/// リクエスト・レスポンスの形は docs/public/profile-lambda.md を参照
+/// リクエスト・レスポンスの形は docs/public/lambda/profile.md を参照
 class HttpProfileRepository implements ProfileRepository {
   HttpProfileRepository(this._apiService);
 

@@ -162,12 +162,12 @@ Lambda で「最大の番号を読んでから 1 足す」と書くと、同時�
 
 テーブルのインデックスは `postedAt` を**文字列**として並べる。
 桁数とタイムゾーン (`Z` = UTC) をそろえた文字列なら、文字列の順と日時の順が一致する
-([posts-table.md](posts-table.md) の「`postedAt` を文字列にしている理由」を参照)。
+([posts-table.md](../table/posts-table.md) の「`postedAt` を文字列にしている理由」を参照)。
 既存の投稿と同じく秒までにそろえる。
 
 ## コード
 
-[Lambda/zero-chat-create-post/lambda_function.py](../../Lambda/zero-chat-create-post/lambda_function.py)
+[Lambda/zero-chat-create-post/lambda_function.py](../../../Lambda/zero-chat-create-post/lambda_function.py)
 
 リポジトリのこのファイルを正とする。修正したら、Lambda コンソールの「コード」タブに貼り付けて「Deploy」する
 (AWS 上のコードとずれないよう、両方を必ず一緒に更新する)。
@@ -203,7 +203,7 @@ Lambda コンソールの「テスト」タブで使うイベント。`body` は
 
 - **`author.id` は常に `0`**: 名前・役職・色はプロフィールから決めるが、人を見分ける番号はまだ使っていない
 - **編集・削除はできない**
-- **TODO**: 投稿の `id` を連番から UUID に変え、番号を数える項目をなくす。詳しくは [posts-table.md](posts-table.md) の「TODO: 投稿の `id` を UUID にする」
+- **TODO**: 投稿の `id` を連番から UUID に変え、番号を数える項目をなくす。詳しくは [posts-table.md](../table/posts-table.md) の「TODO: 投稿の `id` を UUID にする」
 - **文字数の数え方の違い**: Python の `len` は Unicode のコードポイント数を数える。
   アプリの入力欄は見た目の 1 文字 (書記素) で数えるので、複数のコードポイントでできた絵文字などでは数がずれる。
   アプリで 180 文字以内でも、サーバーで 400 になることがある

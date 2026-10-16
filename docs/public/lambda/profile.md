@@ -145,8 +145,8 @@ Content-Type: application/json
 
 ## コード
 
-- [Lambda/zero-chat-get-profile/lambda_function.py](../../Lambda/zero-chat-get-profile/lambda_function.py)
-- [Lambda/zero-chat-update-profile/lambda_function.py](../../Lambda/zero-chat-update-profile/lambda_function.py)
+- [Lambda/zero-chat-get-profile/lambda_function.py](../../../Lambda/zero-chat-get-profile/lambda_function.py)
+- [Lambda/zero-chat-update-profile/lambda_function.py](../../../Lambda/zero-chat-update-profile/lambda_function.py)
 
 リポジトリのファイルを正とする。修正したら、Lambda コンソールの「コード」タブに貼り付けて「Deploy」する。
 

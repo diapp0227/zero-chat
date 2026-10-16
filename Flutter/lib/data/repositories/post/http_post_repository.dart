@@ -12,7 +12,7 @@ import 'post_repository.dart';
 /// 返信 (POST /posts/{id}/replies) する PostRepository
 ///
 /// 取得の API は新しい順に最大 10 件と、続きを読むための目印 (nextCursor) を返す。
-/// レスポンスの形は docs/public/get-posts-lambda.md・create-post-lambda.md・create-reply-lambda.md を参照
+/// レスポンスの形は docs/public/lambda/ の get-posts.md・create-post.md・create-reply.md を参照
 class HttpPostRepository implements PostRepository {
   HttpPostRepository(this._apiService);
 

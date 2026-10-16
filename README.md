@@ -73,7 +73,7 @@ flowchart LR
 ```
 
 アプリの内部は、Flutter 公式が推奨する MVVM + レイヤードアーキテクチャ (UI / Domain / Data) で作っている。
-詳しくは [flutter-architecture.md](flutter-architecture.md) を参照。
+詳しくは [flutter-architecture.md](docs/public/flutter-architecture.md) を参照。
 
 ## ディレクトリ構成
 
@@ -113,9 +113,42 @@ zero-chat/
 │   ├── zero-chat-create-reply/      #   返信作成 API (POST /posts/{id}/replies)
 │   ├── zero-chat-get-profile/       #   プロフィール取得 API (GET /profile)
 │   └── zero-chat-update-profile/    #   プロフィール更新 API (PUT /profile)
-├── docs/public/                     # 構築手順・仕様のドキュメント
-└── flutter-architecture.md          # アプリの設計方針
+└── docs/public/                     # 設計方針・構築手順・仕様のドキュメント (下の「ドキュメント」を参照)
+    ├── flutter-architecture.md      #   アプリの設計方針
+    ├── aws-setup.md                 #   AWS のリソースを一から作る手順
+    ├── table/                       #   DynamoDB のテーブル定義
+    ├── lambda/                      #   Lambda 関数の仕様
+    └── auth/                        #   認証 (Cognito・JWT オーソライザー) の設定
 ```
+
+## ドキュメント
+
+アプリの設計方針、AWS 側の構築手順と、各リソースの仕様は `docs/public/` にある。
+
+### まず読むもの
+
+| ドキュメント | 内容 |
+|---|---|
+| [flutter-architecture.md](docs/public/flutter-architecture.md) | **アプリの設計方針。** MVVM + レイヤードアーキテクチャ (UI / Domain / Data) の分け方と、各層の役割 |
+| [aws-setup.md](docs/public/aws-setup.md) | **AWS のリソースを一から作る手順。** Cognito → DynamoDB → Lambda → API Gateway → アプリの設定 → Web 版の公開の順に進める。更新・削除のしかたと、うまくいかないときの確認先もここにある |
+
+### 仕様 (何がどう設定されているか)
+
+| ディレクトリ | ドキュメント | 内容 |
+|---|---|---|
+| `table/` | [posts-table.md](docs/public/table/posts-table.md) | 投稿のテーブル `zero-chat-posts` (投稿・返信・インデックス・投稿の番号を数える項目) |
+| | [profiles-table.md](docs/public/table/profiles-table.md) | プロフィールのテーブル `zero-chat-profiles` (名前・役職・カラー) |
+| `lambda/` | [get-posts.md](docs/public/lambda/get-posts.md) | `GET /posts` 投稿の一覧 (10 件ずつ・続きの目印 `cursor`・最新のプロフィールで表示) |
+| | [create-post.md](docs/public/lambda/create-post.md) | `POST /posts` 投稿の作成 |
+| | [create-reply.md](docs/public/lambda/create-reply.md) | `POST /posts/{id}/replies` 返信の作成 |
+| | [profile.md](docs/public/lambda/profile.md) | `GET /profile`・`PUT /profile` 自分のプロフィールの取得・保存 |
+| `auth/` | [cognito.md](docs/public/auth/cognito.md) | Cognito のユーザープールの設定と、アプリからのサインアップ・サインイン |
+| | [jwt-authorizer.md](docs/public/auth/jwt-authorizer.md) | API のトークンの確認 (JWT オーソライザー)・CORS |
+
+Lambda の仕様には、リクエスト・レスポンス・エラー・環境変数・実行ロールの権限・テストイベントがある。
+
+アカウント ID・API の URL・ユーザープール ID などの実際の値は、公開しないドキュメント
+`docs/private/aws-resources.md` に書く (`.gitignore` 済みなので、リポジトリには入らない)。
 
 ## 動作環境
 
@@ -132,9 +165,9 @@ Dart SDK の条件は `pubspec.yaml` で `^3.9.0` にしている。
 
 | プラットフォーム | 最低バージョン | 動作確認 |
 |---|---|---|
-| iOS | 13.0 | ✅ iPhone 17 Pro シミュレーター (Cognito でのサインインまで確認) |
+| iOS | 13.0 | ✅ iPhone 17 Pro シミュレーター |
 | Android | 7.0 (API 24) | - |
-| Web | Chrome などのモダンブラウザ | ✅ Chrome (Cognito でのサインインまで確認) |
+| Web | Chrome などのモダンブラウザ | ✅ Chrome |
 | macOS | 10.15 | - (※) |
 | Windows / Linux | - | - |
 
@@ -197,18 +230,8 @@ flutter run -d chrome --web-port 8080 --dart-define-from-file=config/api.json
 ※ API はサインインした人のトークンがないと 401 を返す。API の URL だけ渡して Cognito の ID を渡さないと、
 仮の認証で動いてトークンが付かないため、投稿を読めない。
 
-※ AWS 側の作り方は次を参照。
-
-| 内容 | 手順書 |
-|---|---|
-| 投稿の取得 API | [posts-api-aws.md](docs/public/posts-api-aws.md) |
-| 投稿の作成 API | [create-post-api-aws.md](docs/public/create-post-api-aws.md) |
-| サインアップ・サインイン (Cognito) | [cognito-auth-aws.md](docs/public/cognito-auth-aws.md) |
-| API の JWT 認証 | [api-jwt-auth-aws.md](docs/public/api-jwt-auth-aws.md) |
-| プロフィールの取得・更新 API | [profile-api-aws.md](docs/public/profile-api-aws.md) |
-| 返信 API・投稿の author のカラー | [reply-api-aws.md](docs/public/reply-api-aws.md) |
-| 投稿・返信を最新のプロフィールで表示 | [latest-author-aws.md](docs/public/latest-author-aws.md) |
-| タイムラインのページング | [paging-aws.md](docs/public/paging-aws.md) |
+※ AWS 側の作り方は [aws-setup.md](docs/public/aws-setup.md) (一から作る手順) を参照。
+テーブル・Lambda・認証の仕様は、上の「[ドキュメント](#ドキュメント)」から探せる。
 
 ### 3. テストする
 
@@ -230,4 +253,5 @@ flutter analyze
 | Android | `flutter build apk --release --dart-define-from-file=config/api.json` | `build/app/outputs/flutter-apk/` |
 | macOS | `flutter build macos --release --dart-define-from-file=config/api.json` | `build/macos/` |
 
-Web 版を AWS (S3 + CloudFront) に公開する手順は [deploy-web-aws.md](docs/public/deploy-web-aws.md) を参照。
+Web 版を AWS (S3 + CloudFront) に公開する手順は [aws-setup.md](docs/public/aws-setup.md) の「6. Web 版を公開する」、
+出し直す手順は「7. 更新するとき」を参照。

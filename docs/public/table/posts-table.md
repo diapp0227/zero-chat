@@ -83,7 +83,7 @@ DynamoDB の 1 項目は最大 400 KB なので、返信が非常に多くなる
 
 ## 投稿の番号を数える項目
 
-投稿作成 API ([create-post-lambda.md](create-post-lambda.md)) が、新しい投稿の `id` を決めるために使う項目。
+投稿作成 API ([lambda/create-post.md](../lambda/create-post.md)) が、新しい投稿の `id` を決めるために使う項目。
 テーブルに 1 つだけ置く。
 
 ```json
@@ -159,14 +159,13 @@ DynamoDB の 1 項目は最大 400 KB なので、返信が非常に多くなる
    権限から `dynamodb:UpdateItem` を外し、`PutItem` だけにする
 4. **Lambda (取得)**: `_to_json` の数値の変換は `id` には使わなくなる。レスポンスの `id` が文字列になる
 5. **Flutter**: `Post.id` を `int` から `String` に変え、`HttpPostRepository` の変換、`FakePostRepository` の番号の付け方、テストを直す
-6. **ドキュメント**: このファイル、[create-post-lambda.md](create-post-lambda.md)、[get-posts-lambda.md](get-posts-lambda.md) の `id` の型と例を直す
+6. **ドキュメント**: このファイル、[lambda/create-post.md](../lambda/create-post.md)、[lambda/get-posts.md](../lambda/get-posts.md) の `id` の型と例を直す
 7. 新しいテーブルに切り替えたら、古いテーブルを削除する
 
 ### あわせて決めること
 
-- 返信の `id` (`replies[].id`) も UUID にそろえるか (返信を作る API を作るときに決める)
-- 投稿した人の `id` (`author.id`) は、認証 (Cognito など) を入れるときにユーザーの ID に変える。
-  投稿の `id` とは別の作業
+- 返信の `id` (`replies[].id`) も UUID にそろえるか (今は投稿の中で「最大値 + 1」の数値)
+- 投稿した人は、すでに `author.userId` (Cognito の `sub`) で見分けている。`author.id` (常に `0`) はなくしてよい
 - 古いアプリは `id` を数値として読むので、API を切り替えると投稿を読めなくなる。
   API とアプリ (Web 版・iOS など) を切り替える順番とタイミングを決めておく
 

@@ -149,7 +149,7 @@ GET /posts?category=<種類>&cursor=<前回の nextCursor>
 
 ## コード
 
-[Lambda/zero-chat-get-posts/lambda_function.py](../../Lambda/zero-chat-get-posts/lambda_function.py)
+[Lambda/zero-chat-get-posts/lambda_function.py](../../../Lambda/zero-chat-get-posts/lambda_function.py)
 
 リポジトリのこのファイルを正とする。修正したら、Lambda コンソールの「コード」タブに貼り付けて「Deploy」する
 (AWS 上のコードとずれないよう、両方を必ず一緒に更新する)。
