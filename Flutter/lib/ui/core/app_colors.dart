@@ -259,6 +259,15 @@ abstract final class AppColors {
   /// サインイン画面：押せる文字 (パスワードを忘れた方・コードを再送 など)
   static const authLink = Color(0xFF718029);
 
+  /// サインイン画面：言語設定の枠線
+  static const authLanguageBorder = Color(0xFFE1E0D8);
+
+  /// サインイン画面：言語設定の「言語設定」の文字
+  static const authLanguageLabel = Color(0xFF77786F);
+
+  /// サインイン画面：言語設定の選ばれている言語の文字
+  static const authLanguageValue = Color(0xFF3F4039);
+
   /// サインイン画面：「アカウントを作成」「サインイン」ボタンの影
   static const authSubmitShadow = Color(0x28263746);
 }

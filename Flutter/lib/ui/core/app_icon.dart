@@ -9,6 +9,7 @@ enum AppIconName {
   search('search'),
   bell('bell'),
   organization('organization'),
+  user('user'),
   mail('mail'),
   plus('plus'),
   chevronDown('chevron_down'),

@@ -16,6 +16,7 @@ import 'package:zero_chat/ui/home/timeline_post.dart';
 import 'package:zero_chat/ui/home/widgets/timeline_header.dart';
 import 'package:zero_chat/ui/home/widgets/timeline_category_tabs.dart';
 import 'package:zero_chat/ui/home/widgets/post_cell.dart';
+import 'package:zero_chat/ui/profile/current_profile.dart';
 import 'package:zero_chat/ui/shell/bottom_nav_bar.dart';
 import 'package:zero_chat/ui/shell/desktop_top_bar.dart';
 
@@ -221,6 +222,16 @@ void main() {
       await tester.pump();
       await tester.tap(submit);
       await tester.pumpAndSettle();
+      // ユーザー名が空のうちは進まない
+      expect(find.text('認証コードを入力'), findsNothing);
+
+      await tester.enterText(find.byType(TextField).at(2), '山本 美咲');
+      await tester.tap(find.text('エンジニア'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('デザイナー').last);
+      await tester.pumpAndSettle();
+      await tester.tap(submit);
+      await tester.pumpAndSettle();
       expect(find.text('認証コードを入力'), findsOneWidget);
       expect(find.textContaining('a@example.com に送信した'), findsOneWidget);
 
@@ -236,6 +247,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(AuthScreen), findsNothing);
       expect(find.byType(TimelineCategoryTabs), findsOneWidget);
+
+      // サインアップで入力したユーザー名・役職がプロフィールになる
+      final profile = ProviderScope.containerOf(
+        tester.element(find.byType(App)),
+      ).read(currentProfileProvider);
+      expect(profile.name, '山本 美咲');
+      expect(profile.role, 'デザイナー');
     });
 
     testWidgets('サインインするとホームへ進み、ログアウトで戻る', (WidgetTester tester) async {
@@ -264,6 +282,9 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('おかえりなさい'), findsOneWidget);
+      // ユーザー名・役職はサインアップのときだけ
+      expect(find.text('ユーザー名'), findsNothing);
+      expect(find.text('役職'), findsNothing);
       // パスワード再設定の画面ができるまでは非表示
       expect(find.text('パスワードを忘れた方'), findsNothing);
 

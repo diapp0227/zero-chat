@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/auth/auth_repository.dart';
 import '../../data/repositories/auth/auth_repository_provider.dart';
+import '../profile/current_profile.dart';
 import 'auth_session.dart';
 
 /// サインイン画面の送信の状態
@@ -32,14 +33,17 @@ class AuthViewModel extends Notifier<AsyncValue<void>> {
   }
 
   /// 確認コード [code] でアカウントを確認し、続けてサインインする。サインインできたら true を返す
+  ///
+  /// [profile] (サインアップで入力したユーザー名・役職) を渡すと、サインインできたときにプロフィールにする
   Future<bool> confirmAndSignIn({
     required String email,
     required String password,
     required String code,
+    Profile? profile,
   }) {
     return _run(() async {
       await _repository.confirmSignUp(email: email, code: code);
-      return _signIn(email: email, password: password);
+      return _signIn(email: email, password: password, profile: profile);
     });
   }
 
@@ -81,10 +85,15 @@ class AuthViewModel extends Notifier<AsyncValue<void>> {
   Future<bool> _signIn({
     required String email,
     required String password,
+    Profile? profile,
   }) async {
     final outcome = await _repository.signIn(email: email, password: password);
     if (outcome != SignInOutcome.signedIn) {
       throw const AuthFailure(AuthFailureReason.unknown);
+    }
+    // ホームに移る前にプロフィールを入れておき、最初からユーザー名・役職を表示する
+    if (profile != null) {
+      ref.read(currentProfileProvider.notifier).save(profile);
     }
     ref.read(authSessionProvider.notifier).signIn();
     return true;

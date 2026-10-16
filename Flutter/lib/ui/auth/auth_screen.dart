@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/app_colors.dart';
+import '../core/app_icon.dart';
+import '../core/app_language.dart';
 import '../core/app_logo.dart';
 import '../core/breakpoints.dart';
+import '../profile/current_profile.dart';
+import '../profile/profile_settings_screen.dart';
 import '../../data/repositories/auth/auth_repository.dart';
 import 'auth_failure_message.dart';
 import 'auth_mode.dart';
 import 'auth_view_model.dart';
 import 'widgets/auth_brand_panel.dart';
 import 'widgets/auth_buttons.dart';
+import 'widgets/auth_language_select.dart';
 import 'widgets/auth_mode_tabs.dart';
 import 'widgets/auth_text_field.dart';
 
@@ -17,7 +22,7 @@ import 'widgets/auth_text_field.dart';
 ///
 /// PC (expanded 幅) では左に水色の面、右にフォームを並べたカード、
 /// スマホ・タブレットでは画面いっぱいにフォームだけを表示する。
-/// サインアップは「メールアドレス・パスワード → 認証コード」の2段階
+/// サインアップは「メールアドレス・パスワード・ユーザー名・役職 → 認証コード」の2段階
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
@@ -40,9 +45,16 @@ class AuthScreen extends ConsumerStatefulWidget {
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
   final _codeController = TextEditingController();
 
   AuthMode _mode = AuthMode.signUp;
+
+  /// サインアップで選んだ役職
+  String _role = profileRoles.first;
+
+  /// 言語設定で選んだ言語 (まだ表示には反映しない)
+  AppLanguage _language = AppLanguage.ja;
 
   /// サインアップ後、認証コードの入力待ちか
   bool _verificationPending = false;
@@ -54,6 +66,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     for (final controller in [
       _emailController,
       _passwordController,
+      _nameController,
       _codeController,
     ]) {
       controller.addListener(() => setState(() {}));
@@ -64,6 +77,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _nameController.dispose();
     _codeController.dispose();
     super.dispose();
   }
@@ -75,7 +89,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final email = _emailController.text.trim();
     // パスワードが条件を満たすかの判定は Cognito に任せ、空でなければ送る
     return RegExp(r'^[^@\s]+@[^@\s]+$').hasMatch(email) &&
-        _passwordController.text.isNotEmpty;
+        _passwordController.text.isNotEmpty &&
+        (_mode == AuthMode.signIn || _nameController.text.trim().isNotEmpty);
   }
 
   /// 一番下のボタンが押されたとき。サインインできたら router がホームへ移す
@@ -91,6 +106,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         email: email,
         password: password,
         code: _codeController.text,
+        // サインインから確認に進んだときは、ユーザー名・役職を入力していない
+        profile: _mode == AuthMode.signUp
+            ? Profile(name: _nameController.text.trim(), role: _role)
+            : null,
       );
       return;
     }
@@ -146,11 +165,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       email: _emailController.text.trim(),
       emailController: _emailController,
       passwordController: _passwordController,
+      nameController: _nameController,
       codeController: _codeController,
+      role: _role,
+      language: _language,
       canSubmit: _canSubmit && !submission.isLoading,
       sending: submission.isLoading,
       errorMessage: failure is AuthFailure ? failure.reason.message : null,
       onModeChanged: _changeMode,
+      onRoleChanged: (role) => setState(() => _role = role),
+      onLanguageChanged: (language) => setState(() => _language = language),
       onSubmit: _submit,
       onResendCode: _resendCode,
       onChangeEmail: () {
@@ -304,11 +328,16 @@ class _AuthForm extends StatelessWidget {
     required this.email,
     required this.emailController,
     required this.passwordController,
+    required this.nameController,
     required this.codeController,
+    required this.role,
+    required this.language,
     required this.canSubmit,
     required this.sending,
     required this.errorMessage,
     required this.onModeChanged,
+    required this.onRoleChanged,
+    required this.onLanguageChanged,
     required this.onSubmit,
     required this.onResendCode,
     required this.onChangeEmail,
@@ -330,8 +359,17 @@ class _AuthForm extends StatelessWidget {
   /// パスワードの入力欄の文字
   final TextEditingController passwordController;
 
+  /// ユーザー名の入力欄の文字 (サインアップのみ)
+  final TextEditingController nameController;
+
   /// 認証コードの入力欄の文字
   final TextEditingController codeController;
+
+  /// 選ばれている役職 (サインアップのみ)
+  final String role;
+
+  /// 言語設定で選ばれている言語
+  final AppLanguage language;
 
   /// 一番下のボタンを押せるか
   final bool canSubmit;
@@ -344,6 +382,12 @@ class _AuthForm extends StatelessWidget {
 
   /// 「サインアップ」「サインイン」が切り替えられたときの処理
   final ValueChanged<AuthMode> onModeChanged;
+
+  /// 役職が選ばれたときの処理
+  final ValueChanged<String> onRoleChanged;
+
+  /// 言語が選ばれたときの処理
+  final ValueChanged<AppLanguage> onLanguageChanged;
 
   /// 一番下のボタンが押されたときの処理
   final VoidCallback onSubmit;
@@ -410,7 +454,9 @@ class _AuthForm extends StatelessWidget {
           const SizedBox(height: 25),
           if (!verificationPending) ...[
             AuthModeTabs(selected: mode, onSelected: onModeChanged),
-            const SizedBox(height: 25),
+            const SizedBox(height: 12),
+            AuthLanguageSelect(value: language, onChanged: onLanguageChanged),
+            const SizedBox(height: 20),
           ],
           if (verificationPending) ...[
             AuthTextField(
@@ -451,6 +497,26 @@ class _AuthForm extends StatelessWidget {
               obscureText: true,
               onSubmitted: onSubmit,
             ),
+            if (mode == AuthMode.signUp) ...[
+              const SizedBox(height: 16),
+              AuthTextField(
+                key: const ValueKey('name'),
+                label: 'ユーザー名',
+                controller: nameController,
+                prefix: AuthFieldPrefix.user,
+                hintText: '例：ああああ',
+                maxLength: ProfileSettingsScreen.maxNameLength,
+                onSubmitted: onSubmit,
+              ),
+              const SizedBox(height: 16),
+              AuthSelectField(
+                label: '役職',
+                icon: AppIconName.organization,
+                value: role,
+                options: profileRoles,
+                onChanged: onRoleChanged,
+              ),
+            ],
             if (mode == AuthMode.signIn && AuthScreen.showForgotPassword) ...[
               const SizedBox(height: 9),
               Align(
